@@ -1,13 +1,13 @@
 # Term-Sudoku
 
-This is a terminal application to play the game of Sudoku.
+This is a UNIX-terminal application to play the game of Sudoku.
 
 ## Build
 
 ### Prerequisites
 
-- ncurses
-- dialog for filechoosing
+- [ncurses](https://invisible-island.net/ncurses/ncurses.html)
+- [dialog](https://invisible-island.net/dialog/) for file-choosing
 
 ### Makefile
 
@@ -19,9 +19,9 @@ creates a "bin" folder with the binary.
 
 copies that binary to /usr/local/bin.
 
-## AUR
+## Arch User Repository (AUR)
 
-Install via (using paru)
+Install via AUR (using paru)
 
 `$ paru -Syu term-sudoku`
 
@@ -45,9 +45,11 @@ puzzle and the second is the solution the use fill in):
 000000000000000000000000000000000000000000000000000000000000000000000000000000000
 ```
 
-Continue where you left of with
+Continue where you left of by starting with the -f flag
 
-`$ bin/term-sudoku -f your_file`
+`$ bin/term-sudoku -f`
+
+and choosing your file in dialog.
 
 See more flags and help with the -h flag.
 
