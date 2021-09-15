@@ -5,8 +5,8 @@ SRC = main.c
 EXE = $(ODIR)/term-sudoku
 ODIR = bin
 
-MANPATH = $(PREFIX)/share/man
 PREFIX = /usr/local
+MANPATH = $(PREFIX)/share/man
 
 term-sudoku: $(EXE)
 
@@ -23,7 +23,7 @@ install: $(EXE)
 	cp -f term-sudoku.1 $(DESTDIR)$(MANPATH)/man1/term-sudoku.1
 
 uninstall:
-	rm -f $(IDIR)/term-sudoku
+	rm -f $(DESTDIR)$(PREFIX)/bin/term-sudoku
 	rm -f $(MANPATH)/man1/term-sudoku.1
 
 clean:
