@@ -120,8 +120,6 @@ int main(int argc, char **argv){
 		char* dir = malloc(STR_LEN * sizeof(char));
 		sprintf(dir, "%s/%s/", home_dir, sharepath);
 
-		FILE* log = fopen("log", "w");
-
 		char* temp_filename = "temp.tmp";
 
 		FILE* temp_write = fopen(temp_filename, "w");
@@ -138,8 +136,6 @@ int main(int argc, char **argv){
 		fclose(temp_read);
 		remove(temp_filename);
 
-		fprintf(log, "%s\n", filepath);
-		fclose(log);
 		sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
 
 		//Read Sudoku from given file
@@ -155,6 +151,8 @@ int main(int argc, char **argv){
 		sudoku_str[SUDOKU_LEN] = '\0';
 
 		sprintf(statusbar, "%s", "File opened");
+
+		init_ncurses();
 	}else{
 		//localtime struct for file name
 		struct tm tm = *localtime(&t);
@@ -164,6 +162,8 @@ int main(int argc, char **argv){
 
 		gen_sudoku = malloc((SUDOKU_LEN + 1) * sizeof(char));
 		gen_sudoku[SUDOKU_LEN] = '\0';
+
+		init_ncurses();
 
 		if(gen_visual)
 			curs_set(0);
@@ -181,29 +181,6 @@ int main(int argc, char **argv){
 
 		sprintf(statusbar, "%s", "Sudoku generated");
 	}
-
-	//--- CURSES INIT LOGIC ---
-
-    //on interrupt and segfault (Ctrl+c) exit (call finish)
-	signal(SIGINT, finish);
-	signal(SIGSEGV, finish);
-    //init
-	initscr();
-    //return key doesn't become newline
-	nonl();
-    //allows Ctrl+c to quit the program
-	cbreak();
-    //don't echo the the getch() chars onto the screen
-	noecho();
-    //enable keypad (for arrow keys)
-	keypad(stdscr, true);
-    //color support
-	if(!has_colors())
-		finish_with_err_msg("Your terminal doesn't support color\n");
-	start_color();
-	init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	init_pair(2, COLOR_BLUE, COLOR_BLACK);
-	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 
 	cursor.x = 0;
 	cursor.y = 0;
@@ -785,4 +762,29 @@ void draw_sudokus(){
 
 	attron(COLOR_PAIR(1));
 	read_sudoku(sudoku_str, 1);
+}
+
+void init_ncurses(){
+	//--- CURSES INIT LOGIC ---
+
+    //on interrupt and segfault (Ctrl+c) exit (call finish)
+	signal(SIGINT, finish);
+	signal(SIGSEGV, finish);
+    //init
+	initscr();
+    //return key doesn't become newline
+	nonl();
+    //allows Ctrl+c to quit the program
+	cbreak();
+    //don't echo the the getch() chars onto the screen
+	noecho();
+    //enable keypad (for arrow keys)
+	keypad(stdscr, true);
+    //color support
+	if(!has_colors())
+		finish_with_err_msg("Your terminal doesn't support color\n");
+	start_color();
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	init_pair(2, COLOR_BLUE, COLOR_BLACK);
+	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }

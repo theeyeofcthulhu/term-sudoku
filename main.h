@@ -59,3 +59,4 @@ int savestate();
 void finish(int sig);
 void finish_with_err_msg(char* msg);
 char* listfiles(char* dir);
+void init_ncurses();
