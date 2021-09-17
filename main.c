@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "main.h"
+#include <curses.h>
+#include <unistd.h>
 
 struct cursor{
 	int y;
@@ -51,19 +53,11 @@ int from_file = 0;
 int small_mode = 0;
 
 char* filename;
-char* filepath;
 char* sharepath = ".local/share/term-sudoku";
 char* home_dir;
+char* target_dir;
 
 int main(int argc, char **argv){
-	struct passwd *pw = getpwuid(getuid());
-	home_dir = pw->pw_dir;
-	// Create (if not already created) the term-sudoku directory in the .local/share directory
-	char* mkdir_command = malloc(STR_LEN * sizeof(char));
-	sprintf(mkdir_command, "mkdir -p %s/%s", home_dir, sharepath);
-	system(mkdir_command);
-	free(mkdir_command);
-
 	int c;
 	while ((c = getopt (argc, argv, "hsvfn:")) != -1)
 	switch (c)
@@ -107,39 +101,108 @@ int main(int argc, char **argv){
 	time_t t = time(NULL);
 	srand((unsigned) time(&t));
 
+	// Get user home directory
+	struct passwd *pw = getpwuid(getuid());
+	home_dir = pw->pw_dir;
+
+	// target is: $HOME/.local/share/term-sudoku
+	target_dir = malloc(STR_LEN * sizeof(char));
+	sprintf(target_dir, "%s/%s", home_dir, sharepath);
+
+	// Create (if not already created) the term-sudoku directory in the .local/share directory
+	struct stat st = { 0 };
+	if(stat(target_dir, &st) == -1){
+		printf("Making dir %s\n", target_dir);
+		mkdir(target_dir, 0777);
+	}else {
+		printf("Directory %s exists\n", target_dir);
+	}
+
+	// Array for numbers the user enters
 	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
 	user_nums[SUDOKU_LEN] = '\0';
 
+	// Array for notetaking
 	notes = malloc(SUDOKU_LEN * LINE_LEN * sizeof(int));
 	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 
+	// String for the statusbar
 	statusbar = malloc(30 * sizeof(char));
+
+	filename = malloc(STR_LEN * sizeof(char));
 	
+	// List files and open selected file
 	if(from_file){
-		filepath = malloc(STR_LEN * sizeof(char));
-		char* dir = malloc(STR_LEN * sizeof(char));
-		sprintf(dir, "%s/%s/", home_dir, sharepath);
+		init_ncurses();
 
-		char* temp_filename = "temp.tmp";
+		// Array of strings
+		const char* items[STR_LEN];
+		int iterator = 0;
 
-		FILE* temp_write = fopen(temp_filename, "w");
-		fclose(temp_write);
+		// Load contents of directory into items
+		DIR *diretory_object;
+		struct dirent *dir;
+		diretory_object = opendir(target_dir);
+		if(diretory_object){
+			while((dir = readdir(diretory_object)) != NULL){
+				if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)){
+					items[iterator] = dir->d_name;
+					iterator += 1;
+				}
+			}
+			closedir(diretory_object);
+		}else {
+			finish_with_err_msg("Couldn't open directory");
+		}
 
-		char* command = malloc(STR_LEN * STR_LEN * sizeof(char));
-		sprintf(command, "dialog --title 'Use Space to autocomplete, Enter to confirm' --fselect %s 100 100 2>%s", dir, temp_filename);
-		system(command);
-		system("clear");
-		free(command);
+		curs_set(0);
 
-		FILE* temp_read = fopen(temp_filename, "r");
-		fscanf(temp_read, "%s", filepath);
-		fclose(temp_read);
-		remove(temp_filename);
+		int chosen = 0;
+		int position = 0;
 
+		// Choose file by moving cursor
+		while(!chosen){
+
+			erase();
+
+			printw("%s\n\n", "Choose a savegame - move with j and k, confirm with y");
+
+			for(int j = 0; j < iterator; j++)
+				printw("  %s\n", items[j]);
+
+			mvaddch(position + 2, 0, '*');
+
+			char key_press = getch();
+
+			//Move on vim keys and bind to field size
+			switch(key_press){
+				case 'j':
+					position += 1;
+					break;
+				case 'k':
+					position -= 1;
+					break;
+				case 'y':
+					chosen = 1;
+				default:
+					break;
+			}
+
+			if(position >= iterator)
+				position = 0;
+			else if (position < 0)
+				position = iterator - 1;
+		}
+
+		curs_set(1);
+
+		sprintf(filename, "%s/%s", target_dir, items[position]);
+
+		// Read into the arrays
 		sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
 
 		//Read Sudoku from given file
-		FILE* input_file = fopen(filepath, "r");
+		FILE* input_file = fopen(filename, "r");
 		if(input_file == NULL)
 			finish_with_err_msg("Error accessing file\n");
 
@@ -151,14 +214,15 @@ int main(int argc, char **argv){
 		sudoku_str[SUDOKU_LEN] = '\0';
 
 		sprintf(statusbar, "%s", "File opened");
-
-		init_ncurses();
+	// Generate a new sudoku
 	}else{
 		//localtime struct for file name
 		struct tm tm = *localtime(&t);
 
-		filename = malloc(STR_LEN * sizeof(char));
-		sprintf(filename, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+		char* filename_no_dir = malloc(STR_LEN * sizeof(char));
+		sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+		sprintf(filename, "%s/%s", target_dir, filename_no_dir);
+		free(filename_no_dir);
 
 		gen_sudoku = malloc((SUDOKU_LEN + 1) * sizeof(char));
 		gen_sudoku[SUDOKU_LEN] = '\0';
@@ -552,12 +616,7 @@ void generate_visually(char* sudoku_to_display){
 
 //Write changed values back to file
 int savestate(){
-	if(filepath == NULL){
-		filepath = malloc(STR_LEN * sizeof(char));
-		sprintf(filepath, "%s/%s/%s", home_dir, sharepath, filename);
-	}
-
-	FILE* savestate = fopen(filepath, "w");
+	FILE* savestate = fopen(filename, "w");
 
 	if(savestate == NULL)
 		return 0;

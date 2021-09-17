@@ -7,7 +7,6 @@ This is a UNIX-terminal application to play the game of Sudoku.
 ### Prerequisites
 
 - [ncurses](https://invisible-island.net/ncurses/ncurses.html)
-- [dialog](https://invisible-island.net/dialog/) for file-choosing
 
 ### Makefile
 
@@ -49,7 +48,7 @@ Continue where you left of by starting with the -f flag
 
 `$ bin/term-sudoku -f`
 
-and choosing your file in dialog.
+and choosing your file.
 
 See more flags and help with the -h flag.
 
