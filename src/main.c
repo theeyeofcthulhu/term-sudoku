@@ -120,7 +120,7 @@ int main(int argc, char **argv){
 	user_nums[SUDOKU_LEN] = '\0';
 
 	// Array for notetaking
-	notes = malloc(SUDOKU_LEN * LINE_LEN * sizeof(int));
+	notes = malloc((SUDOKU_LEN * LINE_LEN + 1) * sizeof(int));
 	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 
 	// String for the statusbar
@@ -485,8 +485,10 @@ int solve_user_nums(){
 	for(int i = 0; i < SUDOKU_LEN; i++)
 		combined_solution[i] = sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
 
-	if(check_validity(combined_solution))
+	if(check_validity(combined_solution)){
+		free(combined_solution);
 		return true;
+	}
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		if(combined_solution[i] == '0'){
