@@ -28,6 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <dirent.h>
 
 #include "util.h"
+#include "sudoku.h"
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -36,18 +37,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define STR_LEN 80
 
 struct cursor;
-struct sudoku_cell_props;
-
-//Sudoku generating and other sudoku-related things
-struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
-void generate_sudoku();
-int fill_remaining(int start);
-void remove_nums();
-int solve(char* sudoku_str);
-void solve_count(char* sudoku_to_solve, int* count);
-int solve_user_nums();
-void generate_visually(char* sudoku_to_display);
-int check_validity(char* combined_solution);
 
 //Draw
 void draw();

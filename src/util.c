@@ -1,5 +1,7 @@
 #include "util.h"
 
+// Exit ncurses cleanly
+
 void finish(int sig){
 	endwin();
 	if(sig == SIGSEGV){
@@ -15,9 +17,8 @@ void finish_with_err_msg(char* msg){
 	exit(1);
 }
 
+// curses init logic
 void init_ncurses(){
-	//--- CURSES INIT LOGIC ---
-
     //on interrupt and segfault (Ctrl+c) exit (call finish)
 	signal(SIGINT, finish);
 	signal(SIGSEGV, finish);
@@ -40,6 +41,7 @@ void init_ncurses(){
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }
 
+// List files in a directory into items (iterator will be returned as the actual size of items)
 void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 
 	// Set iterator
