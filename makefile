@@ -1,7 +1,8 @@
 CC = gcc
 LIBS = -lncurses
 
-SRC = main.c
+SRC = src/*.c
+INCLUDE = src/*.h
 EXE = $(ODIR)/term-sudoku
 ODIR = bin
 
@@ -32,5 +33,5 @@ clean:
 $(ODIR):
 	mkdir -p $@
 
-$(EXE): $(SRC) | $(ODIR)
-	$(CC) -o $@ $^ $(LIBS)
+$(EXE): $(SRC) $(INCLUDE) | $(ODIR)
+	$(CC) -o $@ $(SRC) $(LIBS)

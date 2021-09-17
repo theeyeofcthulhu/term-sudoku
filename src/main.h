@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 #include <curses.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -27,6 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <pwd.h>
 #include <dirent.h>
+
+#include "util.h"
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -55,9 +56,4 @@ void move_cursor();
 void draw_sudokus();
 void read_notes();
 
-//Utility
 int savestate();
-void finish(int sig);
-void finish_with_err_msg(char* msg);
-char* listfiles(char* dir);
-void init_ncurses();

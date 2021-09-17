@@ -133,42 +133,29 @@ int main(int argc, char **argv){
 		init_ncurses();
 
 		// Array of strings
-		const char* items[STR_LEN];
+		char* items[STR_LEN];
 		int iterator = 0;
 
-		// Load contents of directory into items
-		DIR *diretory_object;
-		struct dirent *dir;
-		diretory_object = opendir(target_dir);
-		if(diretory_object){
-			while((dir = readdir(diretory_object)) != NULL){
-				if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)){
-					items[iterator] = dir->d_name;
-					iterator += 1;
-				}
-			}
-			closedir(diretory_object);
-		}else {
-			finish_with_err_msg("Couldn't open directory\n");
-		}
-
-		if(iterator == 0)
-			finish_with_err_msg("No files available\n");
+		// Load files in directory into items
+		listfiles(target_dir, items, &iterator);
 
 		curs_set(0);
 
 		int chosen = 0;
 		int position = 0;
 
+		char* temp_file = malloc(STR_LEN * sizeof(char));
+
 		// Choose file by moving cursor
 		while(!chosen){
 
 			erase();
 
-			printw("%s\n\n", "Choose a savegame - move with j and k, confirm with y");
+			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y");
 
-			for(int j = 0; j < iterator; j++)
-				printw("  %s\n", items[j]);
+			for(int j = 0; j < iterator; j++){
+				mvprintw(j + 2, 0, "  %s\n", items[j]);
+			}
 
 			mvaddch(position + 2, 0, '*');
 
@@ -184,6 +171,13 @@ int main(int argc, char **argv){
 					break;
 				case 'y':
 					chosen = 1;
+					break;
+				// Delete selected file and re-read files
+				case 'd':
+					sprintf(temp_file, "%s/%s", target_dir, items[position]);
+					remove(temp_file);
+					listfiles(target_dir, items, &iterator);
+					break;
 				default:
 					break;
 			}
@@ -193,6 +187,8 @@ int main(int argc, char **argv){
 			else if (position < 0)
 				position = iterator - 1;
 		}
+
+		free(temp_file);
 
 		curs_set(1);
 
@@ -692,21 +688,6 @@ int check_validity(char* combined_solution){
 	return 1;
 }
 
-void finish(int sig){
-	endwin();
-	if(sig == SIGSEGV){
-		printf("Segfault\n");
-		exit(1);
-	}
-	exit(0);
-}
-
-void finish_with_err_msg(char* msg){
-	endwin();
-	printf("%s", msg);
-	exit(1);
-}
-
 //Read Sudoku to screen, adding seperators between the blocks for visuals
 void read_sudoku(char* sudoku, int color_mode){
 	if(!small_mode){
@@ -821,29 +802,4 @@ void draw_sudokus(){
 
 	attron(COLOR_PAIR(1));
 	read_sudoku(sudoku_str, 1);
-}
-
-void init_ncurses(){
-	//--- CURSES INIT LOGIC ---
-
-    //on interrupt and segfault (Ctrl+c) exit (call finish)
-	signal(SIGINT, finish);
-	signal(SIGSEGV, finish);
-    //init
-	initscr();
-    //return key doesn't become newline
-	nonl();
-    //allows Ctrl+c to quit the program
-	cbreak();
-    //don't echo the the getch() chars onto the screen
-	noecho();
-    //enable keypad (for arrow keys)
-	keypad(stdscr, true);
-    //color support
-	if(!has_colors())
-		finish_with_err_msg("Your terminal doesn't support color\n");
-	start_color();
-	init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	init_pair(2, COLOR_BLUE, COLOR_BLACK);
-	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }
