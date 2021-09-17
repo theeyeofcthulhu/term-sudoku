@@ -112,10 +112,7 @@ int main(int argc, char **argv){
 	// Create (if not already created) the term-sudoku directory in the .local/share directory
 	struct stat st = { 0 };
 	if(stat(target_dir, &st) == -1){
-		printf("Making dir %s\n", target_dir);
 		mkdir(target_dir, 0777);
-	}else {
-		printf("Directory %s exists\n", target_dir);
 	}
 
 	// Array for numbers the user enters
@@ -152,8 +149,11 @@ int main(int argc, char **argv){
 			}
 			closedir(diretory_object);
 		}else {
-			finish_with_err_msg("Couldn't open directory");
+			finish_with_err_msg("Couldn't open directory\n");
 		}
+
+		if(iterator == 0)
+			finish_with_err_msg("No files available\n");
 
 		curs_set(0);
 
