@@ -124,7 +124,7 @@ int main(int argc, char **argv){
 	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 
 	// String for the statusbar
-	statusbar = malloc(30 * sizeof(char));
+	statusbar = malloc(STR_LEN * sizeof(char));
 
 	filename = malloc(STR_LEN * sizeof(char));
 	
@@ -153,9 +153,8 @@ int main(int argc, char **argv){
 
 			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y");
 
-			for(int j = 0; j < iterator; j++){
+			for(int j = 0; j < iterator; j++)
 				mvprintw(j + 2, 0, "  %s\n", items[j]);
-			}
 
 			mvaddch(position + 2, 0, '*');
 
@@ -176,6 +175,8 @@ int main(int argc, char **argv){
 				case 'd':
 					sprintf(temp_file, "%s/%s", target_dir, items[position]);
 					remove(temp_file);
+					for(int j = 0; j < iterator; j++)
+						free(items[j]);
 					listfiles(target_dir, items, &iterator);
 					break;
 				default:
