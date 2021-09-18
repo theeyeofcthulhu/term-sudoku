@@ -5,3 +5,5 @@ term-sudoku/
 *.tar.xz
 savegames/
 .exrc
+compile_commands.json
+.cache

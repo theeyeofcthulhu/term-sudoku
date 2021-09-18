@@ -17,8 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "main.h"
-#include <curses.h>
-#include <unistd.h>
+#include <stdio.h>
 
 struct cursor{
 	int y;
@@ -51,41 +50,41 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
-	int c;
-	while ((c = getopt (argc, argv, "hsvfn:")) != -1)
-	switch (c)
-	{
-	case 'h':
-		printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
-				"usage: term-sudoku [-hsvf] [-n NUMBER]\n\n"
-				"flags:\n"
-				"-h: display this information\n"
-				"-s: small mode (disables noting numbers)\n"
-				"-v: generate the sudoku visually\n"
-				"-f: list save games and use a selected file as the sudoku\n"
-				"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
-				"controls:\n"
-				"%s", ATTEMPTS_DEFAULT, controls);
-		return 0;
-	case 'v':
-		gen_visual = 1;
+	int flag;
+	while ((flag = getopt (argc, argv, "hsvfn:")) != -1){
+		switch (flag){
+		case 'h':
+			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
+					"usage: term-sudoku [-hsvf] [-n NUMBER]\n\n"
+					"flags:\n"
+					"-h: display this information\n"
+					"-s: small mode (disables noting numbers)\n"
+					"-v: generate the sudoku visually\n"
+					"-f: list save games and use a selected file as the sudoku\n"
+					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
+					"controls:\n"
+					"%s", ATTEMPTS_DEFAULT, controls);
+			return 0;
+		case 'v':
+			gen_visual = 1;
+			break;
+		case 'f':
+			from_file = 1;
+			break;
+		case 'n':
+			attempts = strtol(optarg, NULL, 10);	
+			if(attempts == 0 || attempts >= SUDOKU_LEN)
+				attempts = ATTEMPTS_DEFAULT;
+			break;
+		case 's':
+			small_mode = 1;
+			break;
 		break;
-	case 'f':
-		from_file = 1;
-		break;
-	case 'n':
-		attempts = strtol(optarg, NULL, 10);	
-		if(attempts == 0 || attempts >= SUDOKU_LEN)
-			attempts = ATTEMPTS_DEFAULT;
-		break;
-	case 's':
-		small_mode = 1;
-		break;
-	break;
-	case '?':
-		return 1;
-	default:
-		return 1;
+		case '?':
+			return 1;
+		default:
+			return 1;
+		}
 	}
 
 	//--- USER INIT LOGIC ---
@@ -125,7 +124,7 @@ int main(int argc, char **argv){
 	statusbar = malloc(STR_LEN * sizeof(char));
 
 	filename = malloc(STR_LEN * sizeof(char));
-	
+
 	// List files and open selected file
 	if(from_file){
 		init_ncurses();
@@ -494,10 +493,10 @@ void read_notes(){
 
 //Move cursor but don't get into the seperators
 void move_cursor(){
-	if(!small_mode)
-		move((cursor.y * 4) + 2, (cursor.x * 4) + 2);
-	else
+	if(small_mode)
 		move(cursor.y + (cursor.y / 3) + 1, cursor.x + (cursor.x / 3) + 1);
+	else
+		move((cursor.y * 4) + 2, (cursor.x * 4) + 2);
 }
 
 //Draw user numbers and the given sudoku in different colors
