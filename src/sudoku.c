@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "sudoku.h"
 
-int sudoku_gen_visual = 0;
+bool sudoku_gen_visual = false;
 int sudoku_attempts = ATTEMPTS_DEFAULT;
 
 struct sudoku_cell_props{
@@ -36,9 +36,9 @@ void generate_sudoku(char* gen_sudoku){
 	 * [ ][ ][x] */
 	for(int i = 0; i < 3; i++){
 		for(int j = 0; j < LINE_LEN; j++){
-			int duplicate = 1;
+			bool duplicate = true;
 			while(duplicate){	
-				duplicate = 0;
+				duplicate = false;
 				// Math to get a pointer to the current cell in the according diagonal block
 				char* current_digit = &gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
 				// Assign a value between 1 and 9
@@ -46,7 +46,7 @@ void generate_sudoku(char* gen_sudoku){
 				// Check all didgits up to 'j' cells into the block for duplicates
 				for(int k = 0; k < j; k++){
 					if(*current_digit == gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (k / 3)) + (k % 3)])
-						duplicate = 1;
+						duplicate = true;
 				}
 			}
 			// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
@@ -69,11 +69,11 @@ void remove_nums(char* gen_sudoku){
 	while(sudoku_attempts > 0){
 		// Get non-empty cell
 		int cell;
-		int found_non_empty = 0;
+		bool found_non_empty = false;
 		while(!found_non_empty){
 			cell = rand() % SUDOKU_LEN;
 			if(gen_sudoku[cell] != '0')
-				found_non_empty = 1;
+				found_non_empty = true;
 		}
 
 		// Generate a copy of the sudoku and count how many solutions it has
@@ -94,14 +94,14 @@ void remove_nums(char* gen_sudoku){
 }
 
 // Solve a sudoku (used in generating)
-int solve(char* sudoku_to_solve){
+bool solve(char* sudoku_to_solve){
 	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
 	if(sudoku_gen_visual)
 		generate_visually(sudoku_to_solve);
 
 	// If sudoku is valid, return
 	if(check_validity(sudoku_to_solve))
-		return 1;
+		return true;
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		if(sudoku_to_solve[i] == '0'){
@@ -110,11 +110,11 @@ int solve(char* sudoku_to_solve){
 
 			// Try to assign a value to the cell at i
 			for(int j = 0x31; j <= 0x39; j++){
-				int used = 0;
+				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
 					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
-						used = 1;
+						used = true;
 				}
 				if(!used){
 					sudoku_to_solve[i] = j;
@@ -123,7 +123,7 @@ int solve(char* sudoku_to_solve){
 						free(cell_props.vert_line);
 						free(cell_props.hor_line);
 						free(cell_props.block);
-						return 1;
+						return true;
 					}
 
 					// Otherwise, go back to 0
@@ -137,11 +137,11 @@ int solve(char* sudoku_to_solve){
 			break;
 		}
 	}
-	return 0;
+	return false;
 }
 
 // Solve the sudoku on screen (fill in user_nums)
-int solve_user_nums(char* sudoku_str, char* user_nums){
+bool solve_user_nums(char* sudoku_str, char* user_nums){
 	// Combine entered numbers and puzzle to check if it is correct
 	char* combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
 	for(int i = 0; i < SUDOKU_LEN; i++)
@@ -150,7 +150,7 @@ int solve_user_nums(char* sudoku_str, char* user_nums){
 	// Return true if the sudoku is already valid
 	if(check_validity(combined_solution)){
 		free(combined_solution);
-		return 1;
+		return true;
 	}
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
@@ -160,11 +160,11 @@ int solve_user_nums(char* sudoku_str, char* user_nums){
 
 			// Try to assign a value to the cell at i
 			for(int j = 0x31; j <= 0x39; j++){
-				int used = 0;
+				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
 					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
-						used = 1;
+						used = true;
 				}
 				// Try to recursively solve
 				if(!used){
@@ -175,7 +175,7 @@ int solve_user_nums(char* sudoku_str, char* user_nums){
 						free(cell_props.hor_line);
 						free(cell_props.block);
 						free(combined_solution);
-						return 1;
+						return true;
 					}
 
 					// Otherwise, go back to 0
@@ -192,7 +192,7 @@ int solve_user_nums(char* sudoku_str, char* user_nums){
 		}
 	}
 	// Return false if no solution is found
-	return 0;
+	return false;
 }
 
 // Count the solutions to a puzzle
@@ -217,11 +217,11 @@ void solve_count(char* sudoku_to_solve, int* count){
 
 			// Try to assign a value to the cell at i
 			for(int j = 0x31; j <= 0x39; j++){
-				int used = 0;
+				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
 					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
-						used = 1;
+						used = true;
 				}
 				if(!used){
 					sudoku_to_solve [i] = j;
@@ -272,7 +272,7 @@ struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
 }
 
 // Check for errors in the solved sudoku
-int check_validity(char* combined_solution){
+bool check_validity(char* combined_solution){
 	// Check for errors in vertical lines
 	for(int i = 0; i < LINE_LEN; i++){
 		char* vert_line = malloc(LINE_LEN * sizeof(char));
@@ -284,7 +284,7 @@ int check_validity(char* combined_solution){
 			for(int k = 0; k < LINE_LEN; k++){
 				if(vert_line[k] == vert_line[j] && k != j || vert_line[j] == '0'){
 					free(vert_line);
-					return 0;
+					return false;
 				}	
 			}
 		}
@@ -301,7 +301,7 @@ int check_validity(char* combined_solution){
 			for(int j = 0; j < LINE_LEN; j++){
 				if(hor_line[j] == hor_line[i] && j != i){
 					free(hor_line);
-					return 0;
+					return false;
 				}	}
 		}
 		free(hor_line);
@@ -321,7 +321,7 @@ int check_validity(char* combined_solution){
 				for(int j = 0; j < LINE_LEN; j++){
 					if(block[j] == block[i] && j != i){
 						free(block);
-						return 0;
+						return false;
 					}	
 				}
 			}
@@ -330,5 +330,5 @@ int check_validity(char* combined_solution){
 		}
 	}
 
-	return 1;
+	return true;
 }

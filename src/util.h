@@ -28,4 +28,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 void finish(int sig);
 void finish_with_err_msg(char* msg);
 void listfiles(char* target_dir, char* items[STR_LEN], int* iterator);
-void init_ncurses();

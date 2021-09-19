@@ -18,6 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <curses.h>
 #include <unistd.h>
+#include <signal.h>
+
+#include "util.h"
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -25,14 +28,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
 
-extern int render_small_mode;
+extern bool render_small_mode;
 
 struct cursor{
 	int y;
 	int x;
 };
 
-//Draw
+void init_ncurses();
 void draw(char* statusbar, char* controls, int* notes, char* sudoku_str, char* user_nums, struct cursor cursor);
 void read_sudoku(char* sudoku, int color_mode);
 void move_cursor(struct cursor cursor);

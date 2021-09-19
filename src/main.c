@@ -30,13 +30,13 @@ char* controls = "move - h, j, k and l\n"
 				 "solve sudoku - d\n"
 				 "notetaking mode - e\n"
 				 "quit - q\n";
-int editing_notes = 0;
+bool editing_notes = false;
 int* notes;
 
 int attempts = ATTEMPTS_DEFAULT;
-int gen_visual = 0;
-int from_file = 0;
-int small_mode = 0;
+bool gen_visual = false;
+bool from_file = false;
+bool small_mode = false;
 
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
@@ -60,10 +60,10 @@ int main(int argc, char **argv){
 					"%s", ATTEMPTS_DEFAULT, controls);
 			return 0;
 		case 'v':
-			gen_visual = 1;
+			gen_visual = true;
 			break;
 		case 'f':
-			from_file = 1;
+			from_file = true;
 			break;
 		case 'n':
 			attempts = strtol(optarg, NULL, 10);	
@@ -71,7 +71,7 @@ int main(int argc, char **argv){
 				attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 's':
-			small_mode = 1;
+			small_mode = true;
 			break;
 		case '?':
 			return 1;
@@ -127,10 +127,10 @@ int main(int argc, char **argv){
 
 	filename = malloc(STR_LEN * sizeof(char));
 
+	init_ncurses();
+
 	// List files and open selected file
 	if(from_file){
-		init_ncurses();
-
 		// Array of strings
 		char* items[STR_LEN];
 		int iterator = 0;
@@ -140,7 +140,7 @@ int main(int argc, char **argv){
 
 		curs_set(0);
 
-		int chosen = 0;
+		bool chosen = false;
 		int position = 0;
 
 		char* temp_file = malloc(STR_LEN * sizeof(char));
@@ -150,7 +150,7 @@ int main(int argc, char **argv){
 
 			erase();
 
-			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y");
+			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, quit - q");
 
 			for(int j = 0; j < iterator; j++)
 				mvprintw(j + 2, 0, "  %s\n", items[j]);
@@ -168,7 +168,7 @@ int main(int argc, char **argv){
 					position -= 1;
 					break;
 				case 'y':
-					chosen = 1;
+					chosen = true;
 					break;
 				// Delete selected file and re-read files
 				case 'd':
@@ -178,6 +178,8 @@ int main(int argc, char **argv){
 						free(items[j]);
 					listfiles(target_dir, items, &iterator);
 					break;
+				case 'q':
+					finish(0);
 				default:
 					break;
 			}
@@ -219,8 +221,7 @@ int main(int argc, char **argv){
 
 		free(filename_no_dir);
 
-		init_ncurses();
-
+		// Generate the sudoku
 		if(gen_visual)
 			curs_set(0);
 		generate_sudoku(sudoku_str);
@@ -240,7 +241,7 @@ int main(int argc, char **argv){
 		char key_press = getch();
 
 		char* combined_solution;
-		char* statusbar_backup;
+		char confirmation;
 
 		//Move on vim keys and bind to field size
 		switch(key_press){
@@ -288,15 +289,8 @@ int main(int argc, char **argv){
 				break;
 			//Fill out sudoku; ask for confirmation first
 			case 'd':
-				statusbar_backup = malloc(30 * sizeof(char));
-				strcpy(statusbar_backup, statusbar);
-				sprintf(statusbar, "%s", "Sure? y/n");
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
-				char confirm_complete = getch();
-				sprintf(statusbar, "%s", statusbar_backup);
-				free(statusbar_backup);
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
-				if(confirm_complete != 'y')
+				confirmation = status_bar_confirmation("Sure? y/n");
+				if(confirmation != 'y')
 					break;
 
 				solve_user_nums(sudoku_str,	user_nums);
@@ -313,15 +307,8 @@ int main(int argc, char **argv){
 				break;
 			//Exit; ask for confirmation
 			case 'q':
-				statusbar_backup = malloc(30 * sizeof(char));
-				strcpy(statusbar_backup, statusbar);
-				sprintf(statusbar, "%s", "Sure? y/n");
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
-				char confirm_quit = getch();
-				sprintf(statusbar, "%s", statusbar_backup);
-				free(statusbar_backup);
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
-				if(confirm_quit != 'y')
+				confirmation = status_bar_confirmation("Sure? y/n");
+				if(confirmation != 'y')
 					break;
 
 				finish(0);
@@ -342,7 +329,8 @@ int main(int argc, char **argv){
 					if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){ 
 						user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
 						draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
-				} //check for x
+					}
+					//check for x
 					else if(key_press == 'x' && user_nums[cursor.y * LINE_LEN + cursor.x] != '0'){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = '0';
 						draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
@@ -353,12 +341,28 @@ int main(int argc, char **argv){
 	}
 }
 
+char status_bar_confirmation(char* message){
+	char* statusbar_backup = malloc(30 * sizeof(char));
+	strcpy(statusbar_backup, statusbar);
 
-int savestate(){
+	sprintf(statusbar, "%s", message);
+	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+
+	char confirm_quit = getch();
+
+	sprintf(statusbar, "%s", statusbar_backup);
+	free(statusbar_backup);
+	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+
+	return confirm_quit;
+}
+
+// Write sudoku_str, user_nums and notes to file
+bool savestate(){
 	FILE* savestate = fopen(filename, "w");
 
 	if(savestate == NULL)
-		return 0;
+		return false;
 
 	fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
 	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
@@ -366,5 +370,5 @@ int savestate(){
 	fprintf(savestate, "\n");
 	fclose(savestate);
 
-	return 1;
+	return true;
 }
