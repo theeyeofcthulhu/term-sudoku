@@ -16,20 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <curses.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <pwd.h>
-#include <dirent.h>
-
-#include "util.h"
-#include "sudoku.h"
-#include "ncurses_render.h"
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -37,4 +25,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
 
-int savestate();
+extern int render_small_mode;
+
+struct cursor{
+	int y;
+	int x;
+};
+
+//Draw
+void draw(char* statusbar, char* controls, int* notes, char* sudoku_str, char* user_nums, struct cursor cursor);
+void read_sudoku(char* sudoku, int color_mode);
+void move_cursor(struct cursor cursor);
+void draw_sudokus(char* sudoku_str, char* user_nums);
+void read_notes(int* notes);
