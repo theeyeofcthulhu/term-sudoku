@@ -30,10 +30,6 @@ struct sudoku_cell_props{
 // Generate a random sudoku
 // This function generates the diagonal blocks from left to right and then calls fill_remaining()
 void generate_sudoku(char* gen_sudoku){
-	// Fill sudoku with blanks
-	for(int i = 0; i < SUDOKU_LEN; i++)
-		gen_sudoku[i] = '0';
-
 	// Fill each diagonal block with the values 1-9
 	/* [x][ ][ ]
 	 * [ ][x][ ]
@@ -68,6 +64,7 @@ void generate_sudoku(char* gen_sudoku){
 
 // Try and remove numbers until the solution is not unique
 void remove_nums(char* gen_sudoku){
+	int length = strlen(gen_sudoku) + 1;
 	// Run down the attempts defined with '-n'
 	while(sudoku_attempts > 0){
 		// Get non-empty cell
@@ -80,7 +77,7 @@ void remove_nums(char* gen_sudoku){
 		}
 
 		// Generate a copy of the sudoku and count how many solutions it has
-		char* sudoku_cpy = malloc(SUDOKU_LEN * sizeof(char));
+		char* sudoku_cpy = malloc(length * sizeof(char));
 		strcpy(sudoku_cpy, gen_sudoku);
 		sudoku_cpy[cell] = '0';
 		int count = 0;

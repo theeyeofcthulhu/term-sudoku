@@ -79,7 +79,6 @@ int main(int argc, char **argv){
 		case 's':
 			small_mode = 1;
 			break;
-		break;
 		case '?':
 			return 1;
 		default:
@@ -111,14 +110,22 @@ int main(int argc, char **argv){
 		mkdir(target_dir, 0777);
 	}
 
+	// Allocate strings, fill with zeros and null-terminate
+
 	// Array for sudoku
 	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	for(int i = 0; i < SUDOKU_LEN; sudoku_str[i++] = '0');
+	sudoku_str[SUDOKU_LEN] = '\0';
 
 	// Array for numbers the user enters
 	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	for(int i = 0; i < SUDOKU_LEN; user_nums[i++] = '0');
+	user_nums[SUDOKU_LEN] = '\0';
 
 	// Array for notetaking
 	notes = malloc((SUDOKU_LEN * LINE_LEN + 1) * sizeof(int));
+	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
+	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 
 	// String for the statusbar
 	statusbar = malloc(STR_LEN * sizeof(char));
@@ -225,12 +232,6 @@ int main(int argc, char **argv){
 		if(gen_visual)
 			curs_set(1);
 
-		for(int i = 0; i < SUDOKU_LEN; i++)
-			user_nums[i] = '0';
-
-		for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-			notes[i] = 0;
-
 		sprintf(statusbar, "%s", "Sudoku generated");
 	}
 
@@ -303,7 +304,7 @@ int main(int argc, char **argv){
 				if(confirm_complete != 'y')
 					break;
 
-				solve_user_nums();
+				solve_user_nums(sudoku_str,	user_nums);
 				draw();
 				break;
 			case 'e':
