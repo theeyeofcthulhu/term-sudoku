@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <curses.h>
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -32,6 +33,7 @@ extern int sudoku_attempts;
 struct sudoku_cell_props;
 
 struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
+void free_cell_props(struct sudoku_cell_props cell);
 void generate_sudoku(char* gen_sudoku);
 int fill_remaining(int start);
 void remove_nums(char* gen_sudoku);

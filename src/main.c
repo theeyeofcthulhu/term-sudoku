@@ -33,10 +33,7 @@ char* controls = "move - h, j, k and l\n"
 bool editing_notes = false;
 int* notes;
 
-int attempts = ATTEMPTS_DEFAULT;
-bool gen_visual = false;
 bool from_file = false;
-bool small_mode = false;
 
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
@@ -44,6 +41,7 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
+	// Handle command line input
 	int flag;
 	while ((flag = getopt (argc, argv, "hsvfn:")) != -1){
 		switch (flag){
@@ -60,18 +58,18 @@ int main(int argc, char **argv){
 					"%s", ATTEMPTS_DEFAULT, controls);
 			return 0;
 		case 'v':
-			gen_visual = true;
+			sudoku_gen_visual = true;
 			break;
 		case 'f':
 			from_file = true;
 			break;
 		case 'n':
-			attempts = strtol(optarg, NULL, 10);	
-			if(attempts == 0 || attempts >= SUDOKU_LEN)
-				attempts = ATTEMPTS_DEFAULT;
+			sudoku_attempts = strtol(optarg, NULL, 10);
+			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
+				sudoku_attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 's':
-			small_mode = true;
+			render_small_mode = true;
 			break;
 		case '?':
 			return 1;
@@ -79,13 +77,6 @@ int main(int argc, char **argv){
 			return 1;
 		}
 	}
-
-	//--- USER INIT LOGIC ---
-	
-	// Initialize flag values in other files
-	sudoku_gen_visual = gen_visual;
-	sudoku_attempts = attempts;
-	render_small_mode = small_mode;
 
 	//Initialize time and seed random
 	time_t t = time(NULL);
@@ -101,9 +92,8 @@ int main(int argc, char **argv){
 
 	// Create (if not already created) the term-sudoku directory in the .local/share directory
 	struct stat st = { 0 };
-	if(stat(target_dir, &st) == -1){
+	if(stat(target_dir, &st) == -1)
 		mkdir(target_dir, 0777);
-	}
 
 	// Allocate strings, fill with zeros and null-terminate
 
@@ -127,6 +117,7 @@ int main(int argc, char **argv){
 
 	filename = malloc(STR_LEN * sizeof(char));
 
+	// ncurses intializer functions
 	init_ncurses();
 
 	// List files and open selected file
@@ -143,7 +134,7 @@ int main(int argc, char **argv){
 		bool chosen = false;
 		int position = 0;
 
-		char* temp_file = malloc(STR_LEN * sizeof(char));
+		char* temp_file;
 
 		// Choose file by moving cursor
 		while(!chosen){
@@ -155,11 +146,12 @@ int main(int argc, char **argv){
 			for(int j = 0; j < iterator; j++)
 				mvprintw(j + 2, 0, "  %s\n", items[j]);
 
+			// Asteriks as cursor for file selection
 			mvaddch(position + 2, 0, '*');
 
 			char key_press = getch();
 
-			//Move on vim keys and bind to field size
+			//Move on vim keys and bind to items
 			switch(key_press){
 				case 'j':
 					position += 1;
@@ -172,11 +164,13 @@ int main(int argc, char **argv){
 					break;
 				// Delete selected file and re-read files
 				case 'd':
+					temp_file = malloc(STR_LEN * sizeof(char));
 					sprintf(temp_file, "%s/%s", target_dir, items[position]);
 					remove(temp_file);
 					for(int j = 0; j < iterator; j++)
 						free(items[j]);
 					listfiles(target_dir, items, &iterator);
+					free(temp_file);
 					break;
 				case 'q':
 					finish(0);
@@ -190,11 +184,12 @@ int main(int argc, char **argv){
 				position = iterator - 1;
 		}
 
-		free(temp_file);
-
 		curs_set(1);
 
 		sprintf(filename, "%s/%s", target_dir, items[position]);
+
+		for(int j = 0; j < iterator; j++)
+			free(items[j]);
 
 		//Read Sudoku from given file
 		FILE* input_file = fopen(filename, "r");
@@ -222,11 +217,7 @@ int main(int argc, char **argv){
 		free(filename_no_dir);
 
 		// Generate the sudoku
-		if(gen_visual)
-			curs_set(0);
 		generate_sudoku(sudoku_str);
-		if(gen_visual)
-			curs_set(1);
 
 		sprintf(statusbar, "%s", "Sudoku generated");
 	}
@@ -236,13 +227,12 @@ int main(int argc, char **argv){
 
 	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
 
+	char* combined_solution;
+	char confirmation;
+
 	//Main loop: wait for keypress, then process it
 	while(true){
 		char key_press = getch();
-
-		char* combined_solution;
-		char confirmation;
-
 		//Move on vim keys and bind to field size
 		switch(key_press){
 			case 'h':
@@ -297,7 +287,7 @@ int main(int argc, char **argv){
 				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
 				break;
 			case 'e':
-				if(small_mode)
+				if(render_small_mode)
 					break;
 				editing_notes = !editing_notes;
 				char* mode = editing_notes == 1 ? "Note\0" : "Normal\0";

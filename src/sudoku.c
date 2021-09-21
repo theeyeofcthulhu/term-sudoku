@@ -30,6 +30,8 @@ struct sudoku_cell_props{
 // Generate a random sudoku
 // This function generates the diagonal blocks from left to right and then calls fill_remaining()
 void generate_sudoku(char* gen_sudoku){
+	if(sudoku_gen_visual)
+		curs_set(0);
 	// Fill each diagonal block with the values 1-9
 	/* [x][ ][ ]
 	 * [ ][x][ ]
@@ -41,9 +43,9 @@ void generate_sudoku(char* gen_sudoku){
 				duplicate = false;
 				// Math to get a pointer to the current cell in the according diagonal block
 				char* current_digit = &gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
-				// Assign a value between 1 and 9
+				// Assign a random value between 1 and 9
 				*current_digit = 0x31 + rand() % 9;
-				// Check all didgits up to 'j' cells into the block for duplicates
+				// Check all digits up to 'j' cells into the block for duplicates
 				for(int k = 0; k < j; k++){
 					if(*current_digit == gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (k / 3)) + (k % 3)])
 						duplicate = true;
@@ -60,6 +62,52 @@ void generate_sudoku(char* gen_sudoku){
 	solve(gen_sudoku);
 	// Remove numbers but maintain unique solution
 	remove_nums(gen_sudoku);
+
+	if(sudoku_gen_visual)
+		curs_set(1);
+}
+
+// Solve a sudoku (used in generating)
+bool solve(char* sudoku_to_solve){
+	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
+	if(sudoku_gen_visual)
+		generate_visually(sudoku_to_solve);
+
+	// If sudoku is valid, return
+	if(check_validity(sudoku_to_solve))
+		return true;
+
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		if(sudoku_to_solve[i] == '0'){
+			// Get the fields associated with the value at start
+			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+
+			// Try to assign a value to the cell at i
+			for(int j = 0x31; j <= 0x39; j++){
+				bool used = false;
+				for(int k = 0; k < LINE_LEN; k++){
+					// Check if the value is valid
+					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
+						used = true;
+				}
+				if(!used){
+					sudoku_to_solve[i] = j;
+					// Check the whole path
+					if(solve(sudoku_to_solve)){
+						free_cell_props(cell_props);
+						return true;
+					}
+
+					// Otherwise, go back to 0
+					sudoku_to_solve[i] = '0';
+				}
+			}
+
+			free_cell_props(cell_props);
+			break;
+		}
+	}
+	return false;
 }
 
 // Try and remove numbers until the solution is not unique
@@ -93,53 +141,6 @@ void remove_nums(char* gen_sudoku){
 	}
 }
 
-// Solve a sudoku (used in generating)
-bool solve(char* sudoku_to_solve){
-	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
-	if(sudoku_gen_visual)
-		generate_visually(sudoku_to_solve);
-
-	// If sudoku is valid, return
-	if(check_validity(sudoku_to_solve))
-		return true;
-
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		if(sudoku_to_solve[i] == '0'){
-			// Get the fields associated with the value at start
-			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
-
-			// Try to assign a value to the cell at i
-			for(int j = 0x31; j <= 0x39; j++){
-				bool used = false;
-				for(int k = 0; k < LINE_LEN; k++){
-					// Check if the value is valid
-					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
-						used = true;
-				}
-				if(!used){
-					sudoku_to_solve[i] = j;
-					// Check the whole path
-					if(solve(sudoku_to_solve)){
-						free(cell_props.vert_line);
-						free(cell_props.hor_line);
-						free(cell_props.block);
-						return true;
-					}
-
-					// Otherwise, go back to 0
-					sudoku_to_solve[i] = '0';
-				}
-			}
-
-			free(cell_props.vert_line);
-			free(cell_props.hor_line);
-			free(cell_props.block);
-			break;
-		}
-	}
-	return false;
-}
-
 // Solve the sudoku on screen (fill in user_nums)
 bool solve_user_nums(char* sudoku_str, char* user_nums){
 	// Combine entered numbers and puzzle to check if it is correct
@@ -171,9 +172,7 @@ bool solve_user_nums(char* sudoku_str, char* user_nums){
 					user_nums[i] = j;
 					// Check the whole path
 					if(solve_user_nums(sudoku_str, user_nums)){
-						free(cell_props.vert_line);
-						free(cell_props.hor_line);
-						free(cell_props.block);
+						free_cell_props(cell_props);
 						free(combined_solution);
 						return true;
 					}
@@ -184,9 +183,7 @@ bool solve_user_nums(char* sudoku_str, char* user_nums){
 				}
 			}
 
-			free(cell_props.vert_line);
-			free(cell_props.hor_line);
-			free(cell_props.block);
+			free_cell_props(cell_props);
 			free(combined_solution);
 			break;
 		}
@@ -242,9 +239,7 @@ void solve_count(char* sudoku_to_solve, int* count){
 				}
 			}
 
-			free(cell_props.vert_line);
-			free(cell_props.hor_line);
-			free(cell_props.block);
+			free_cell_props(cell_props);
 			break;
 		}
 	}
@@ -269,6 +264,12 @@ struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
 		result.block[j] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN + (((cell % LINE_LEN) / 3) * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
 
 	return result;
+}
+
+void free_cell_props(struct sudoku_cell_props cell){
+	free(cell.vert_line);
+	free(cell.hor_line);
+	free(cell.block);
 }
 
 // Check for errors in the solved sudoku
