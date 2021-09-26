@@ -37,6 +37,8 @@ bool from_file = false;
 bool own_sudoku = false;
 bool ask_confirmation = true;
 
+char* custom_dir;
+
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
 char* home_dir;
@@ -45,11 +47,11 @@ char* target_dir;
 int main(int argc, char **argv){
 	// Handle command line input
 	int flag;
-	while ((flag = getopt (argc, argv, "hsvfecn:")) != -1){
+	while ((flag = getopt (argc, argv, "hsvfecd:n:")) != -1){
 		switch (flag){
 		case 'h':
 			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
-					"usage: term-sudoku [-hsvfe] [-n NUMBER]\n\n"
+					"usage: term-sudoku [-hsvfe] [-d DIR] [-n NUMBER]\n\n"
 					"flags:\n"
 					"-h: display this information\n"
 					"-s: small mode (disables noting numbers)\n"
@@ -57,15 +59,13 @@ int main(int argc, char **argv){
 					"-f: list save games and use a selected file as the sudoku\n"
 					"-e: enter your own sudoku\n"
 					"-c: do not ask for confirmation when trying to exit, solve, etc.\n"
+					"-d: DIR: specify directory where save files are and should be saved\n"
 					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
 					"controls:\n"
 					"%s", ATTEMPTS_DEFAULT, controls);
 			return 0;
 		case 'v':
 			sudoku_gen_visual = true;
-			break;
-		case 'f':
-			from_file = true;
 			break;
 		case 'e':
 			own_sudoku = true;
@@ -74,6 +74,13 @@ int main(int argc, char **argv){
 			sudoku_attempts = strtol(optarg, NULL, 10);
 			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
 				sudoku_attempts = ATTEMPTS_DEFAULT;
+			break;
+		case 'd':
+			custom_dir = malloc(STR_LEN * sizeof(char));
+			strcpy(custom_dir, optarg);
+			break;
+		case 'f':
+			from_file = true;
 			break;
 		case 'c':
 			ask_confirmation = false;
@@ -100,14 +107,17 @@ int main(int argc, char **argv){
 	struct passwd *pw = getpwuid(getuid());
 	home_dir = pw->pw_dir;
 
-	// target is: $HOME/.local/share/term-sudoku
-	target_dir = malloc(STR_LEN * sizeof(char));
-	sprintf(target_dir, "%s/%s", home_dir, sharepath);
-
-	// Create (if not already created) the term-sudoku directory in the .local/share directory
-	struct stat st = { 0 };
-	if(stat(target_dir, &st) == -1)
-		mkdir(target_dir, 0777);
+	if(custom_dir == NULL){
+		// target is: $HOME/.local/share/term-sudoku
+		target_dir = malloc(STR_LEN * sizeof(char));
+		sprintf(target_dir, "%s/%s", home_dir, sharepath);
+		// Create (if not already created) the term-sudoku directory in the .local/share directory
+		struct stat st = { 0 };
+		if(stat(target_dir, &st) == -1)
+			mkdir(target_dir, 0777);
+	// Use a custom directory specified in '-d'
+	}else
+		target_dir = custom_dir;
 
 	// Allocate strings, fill with zeros and null-terminate
 

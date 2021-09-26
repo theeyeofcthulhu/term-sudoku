@@ -7,7 +7,7 @@
 term-sudoku - play sudoku in the terminal
 .SH SYNOPSIS
 .PP
-\f[B]term-sudoku\f[R] [-hsvfce] [-n NUMBER]
+\f[B]term-sudoku\f[R] [-hsvfce] [-d DIR] [-n NUMBER]
 .SH DESCRIPTION
 .PP
 \f[B]term-sudoku\f[R] is a terminal application written in C with the
@@ -34,8 +34,8 @@ Takes longer since a wait time between each frame is added to make the
 otherwise fast fast generation process visible.
 .TP
 \f[B]-f\f[R]
-Select a file from the \[ti]/.local/share/term-sudoku directory to load
-a savegame.
+Select a file from the \[ti]/.local/share/term-sudoku (or any directory
+specified with the -d flag) directory to load a savegame.
 .TP
 \f[B]-e\f[R]
 Show an empty field which can be filled out with puzzle.
@@ -45,6 +45,10 @@ Controls are similar to normal mode Enter \f[B]d\f[R] and confirm with
 \f[B]-c\f[R]
 Do not ask for confirmation (pressing \f[B]y\f[R] or \f[B]n\f[R]) when
 trying to solve, exit, etc.
+.TP
+\f[B]-d \f[BI]DIR\f[B]\f[R]
+Specify directory where save files should be looked for when starting
+with \f[B]-f\f[R] and where they should be saved.
 .TP
 \f[B]-n \f[BI]NUMBER\f[B]\f[R]
 Specify the number of times to try and remove numbers from the full

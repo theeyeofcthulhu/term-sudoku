@@ -56,8 +56,7 @@ void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 		}
 		closedir(diretory_object);
 	}else
-		finish_with_err_msg("Couldn't open directory\n");
-
+		finish_with_err_msg("Directory could not be opened or does not exist\n");
 	if(*iterator == 0)
 		finish_with_err_msg("No files available\n");
 }

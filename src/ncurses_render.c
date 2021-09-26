@@ -37,7 +37,7 @@ void init_ncurses(){
 	keypad(stdscr, true);
     // color support
 	if(!has_colors())
-		finish_with_err_msg("Your terminal doesn't support color\n");
+		finish_with_err_msg("Your terminal does not support color\n");
 	start_color();
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_BLUE, COLOR_BLACK);
