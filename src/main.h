@@ -38,5 +38,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
 
-bool savestate();
-char status_bar_confirmation(char* message);
+char status_bar_confirmation(char* message, char* controls);

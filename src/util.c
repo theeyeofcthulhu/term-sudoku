@@ -61,3 +61,19 @@ void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 	if(*iterator == 0)
 		finish_with_err_msg("No files available\n");
 }
+
+// Write sudoku_str, user_nums and notes to file
+bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes){
+	FILE* savestate = fopen(filename, "w");
+
+	if(savestate == NULL)
+		return false;
+
+	fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
+	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
+		fprintf(savestate, "%d", notes[i]);
+	fprintf(savestate, "\n");
+	fclose(savestate);
+
+	return true;
+}

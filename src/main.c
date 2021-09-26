@@ -34,6 +34,7 @@ bool editing_notes = false;
 int* notes;
 
 bool from_file = false;
+bool own_sudoku = false;
 
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
@@ -43,16 +44,17 @@ char* target_dir;
 int main(int argc, char **argv){
 	// Handle command line input
 	int flag;
-	while ((flag = getopt (argc, argv, "hsvfn:")) != -1){
+	while ((flag = getopt (argc, argv, "hsvfen:")) != -1){
 		switch (flag){
 		case 'h':
 			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
-					"usage: term-sudoku [-hsvf] [-n NUMBER]\n\n"
+					"usage: term-sudoku [-hsvfe] [-n NUMBER]\n\n"
 					"flags:\n"
 					"-h: display this information\n"
 					"-s: small mode (disables noting numbers)\n"
 					"-v: generate the sudoku visually\n"
 					"-f: list save games and use a selected file as the sudoku\n"
+					"-e: enter your own sudoku\n"
 					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
 					"controls:\n"
 					"%s", ATTEMPTS_DEFAULT, controls);
@@ -62,6 +64,9 @@ int main(int argc, char **argv){
 			break;
 		case 'f':
 			from_file = true;
+			break;
+		case 'e':
+			own_sudoku = true;
 			break;
 		case 'n':
 			sudoku_attempts = strtol(optarg, NULL, 10);
@@ -77,6 +82,10 @@ int main(int argc, char **argv){
 			return 1;
 		}
 	}
+
+	// Can't open from file and have user enter their own sudoku
+	if(from_file && own_sudoku)
+		finish_with_err_msg("Mutually exclusive flags given!\n");
 
 	//Initialize time and seed random
 	time_t t = time(NULL);
@@ -205,6 +214,70 @@ int main(int argc, char **argv){
 
 		sprintf(statusbar, "%s", "File opened");
 	// Generate a new sudoku
+	}else if(own_sudoku){
+		sprintf(statusbar, "%s", "Enter your sudoku");
+		char* custom_sudoku_controls = "move - h, j, k and l\n"
+						"1-9 - insert numbers\n"
+						"x or 0 - delete numbers\n"
+						"done - d\n"
+						"quit - q\n";
+		erase();
+		draw(statusbar, custom_sudoku_controls, notes, sudoku_str, user_nums, cursor);
+		char confirmation;
+		bool done = false;
+
+		// Loop for entering your own sudoku
+		while(!done){
+			char key_press = getch();
+			//Move on vim keys and bind to field size
+			switch(key_press){
+			case 'h':
+				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
+				move_cursor(cursor);
+				break;
+			case 'j':
+				cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
+				move_cursor(cursor);
+				break;
+			case 'k':
+				cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
+				move_cursor(cursor);
+				break;
+			case 'l':
+				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
+				move_cursor(cursor);
+				break;
+			case 'd':
+				confirmation = status_bar_confirmation("Sure? y/n", custom_sudoku_controls);
+				if(confirmation != 'y')
+					break;
+
+				sprintf(statusbar, "Sudoku entered");
+				done = true;
+				break;
+			case 'q':
+				confirmation = status_bar_confirmation("Sure? y/n", custom_sudoku_controls);
+				if(confirmation != 'y')
+					break;
+
+				finish(0);
+			//Input numbers into the user sudoku field
+			default:
+				//Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
+
+				//check for numbers
+				if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
+					sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
+					draw(statusbar, custom_sudoku_controls, notes, sudoku_str, sudoku_str, cursor);
+				}
+				//check for x
+				else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
+					sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
+					draw(statusbar, custom_sudoku_controls, notes, sudoku_str, sudoku_str, cursor);
+				}
+				break;
+			}
+		}
 	}else{
 		// localtime struct for file name
 		struct tm tm = *localtime(&t);
@@ -253,7 +326,7 @@ int main(int argc, char **argv){
 				break;
 			case 's':
 				//Save file and handle errors
-				if(!savestate())
+				if(!savestate(filename, sudoku_str, user_nums, notes))
 					finish_with_err_msg("Error accessing file\n");
 				else
 					sprintf(statusbar, "%s", "Saved");
@@ -279,7 +352,7 @@ int main(int argc, char **argv){
 				break;
 			//Fill out sudoku; ask for confirmation first
 			case 'd':
-				confirmation = status_bar_confirmation("Sure? y/n");
+				confirmation = status_bar_confirmation("Sure? y/n", controls);
 				if(confirmation != 'y')
 					break;
 
@@ -297,7 +370,7 @@ int main(int argc, char **argv){
 				break;
 			//Exit; ask for confirmation
 			case 'q':
-				confirmation = status_bar_confirmation("Sure? y/n");
+				confirmation = status_bar_confirmation("Sure? y/n", controls);
 				if(confirmation != 'y')
 					break;
 
@@ -331,7 +404,7 @@ int main(int argc, char **argv){
 	}
 }
 
-char status_bar_confirmation(char* message){
+char status_bar_confirmation(char* message, char* controls){
 	char* statusbar_backup = malloc(30 * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
@@ -345,20 +418,4 @@ char status_bar_confirmation(char* message){
 	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
 
 	return confirm_quit;
-}
-
-// Write sudoku_str, user_nums and notes to file
-bool savestate(){
-	FILE* savestate = fopen(filename, "w");
-
-	if(savestate == NULL)
-		return false;
-
-	fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
-	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-		fprintf(savestate, "%d", notes[i]);
-	fprintf(savestate, "\n");
-	fclose(savestate);
-
-	return true;
 }

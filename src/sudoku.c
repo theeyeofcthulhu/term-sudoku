@@ -28,7 +28,8 @@ struct sudoku_cell_props{
 };
 
 // Generate a random sudoku
-// This function generates the diagonal blocks from left to right and then calls fill_remaining()
+// This function generates the diagonal blocks from left to right and then calls solve()
+// and remove_nums() to first fill out and then remove some numbers to create a complete puzzle
 void generate_sudoku(char* gen_sudoku){
 	if(sudoku_gen_visual)
 		curs_set(0);

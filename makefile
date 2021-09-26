@@ -17,6 +17,9 @@ run: $(EXE)
 file: $(EXE)
 	bin/term-sudoku -f
 
+own: $(EXE)
+	bin/term-sudoku -e
+
 install: $(EXE)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f $(ODIR)/term-sudoku $(DESTDIR)$(PREFIX)/bin

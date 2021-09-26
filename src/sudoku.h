@@ -35,7 +35,6 @@ struct sudoku_cell_props;
 struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
 void free_cell_props(struct sudoku_cell_props cell);
 void generate_sudoku(char* gen_sudoku);
-int fill_remaining(int start);
 void remove_nums(char* gen_sudoku);
 bool solve(char* sudoku_str);
 void solve_count(char* sudoku_to_solve, int* count);
