@@ -35,6 +35,7 @@ int* notes;
 
 bool from_file = false;
 bool own_sudoku = false;
+bool ask_confirmation = true;
 
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
@@ -44,7 +45,7 @@ char* target_dir;
 int main(int argc, char **argv){
 	// Handle command line input
 	int flag;
-	while ((flag = getopt (argc, argv, "hsvfen:")) != -1){
+	while ((flag = getopt (argc, argv, "hsvfecn:")) != -1){
 		switch (flag){
 		case 'h':
 			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
@@ -55,6 +56,7 @@ int main(int argc, char **argv){
 					"-v: generate the sudoku visually\n"
 					"-f: list save games and use a selected file as the sudoku\n"
 					"-e: enter your own sudoku\n"
+					"-c: do not ask for confirmation when trying to exit, solve, etc.\n"
 					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
 					"controls:\n"
 					"%s", ATTEMPTS_DEFAULT, controls);
@@ -72,6 +74,9 @@ int main(int argc, char **argv){
 			sudoku_attempts = strtol(optarg, NULL, 10);
 			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
 				sudoku_attempts = ATTEMPTS_DEFAULT;
+			break;
+		case 'c':
+			ask_confirmation = false;
 			break;
 		case 's':
 			render_small_mode = true;
@@ -405,6 +410,8 @@ int main(int argc, char **argv){
 }
 
 char status_bar_confirmation(char* message, char* controls){
+	if(!ask_confirmation)
+		return 'y';
 	char* statusbar_backup = malloc(30 * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 

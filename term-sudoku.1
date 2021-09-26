@@ -7,7 +7,7 @@
 term-sudoku - play sudoku in the terminal
 .SH SYNOPSIS
 .PP
-\f[B]term-sudoku\f[R] [-hsvfe] [-n NUMBER]
+\f[B]term-sudoku\f[R] [-hsvfce] [-n NUMBER]
 .SH DESCRIPTION
 .PP
 \f[B]term-sudoku\f[R] is a terminal application written in C with the
@@ -41,6 +41,10 @@ a savegame.
 Show an empty field which can be filled out with puzzle.
 Controls are similar to normal mode Enter \f[B]d\f[R] and confirm with
 \f[B]y\f[R] to enter normal mode with the entered puzzle.
+.TP
+\f[B]-c\f[R]
+Do not ask for confirmation (pressing \f[B]y\f[R] or \f[B]n\f[R]) when
+trying to solve, exit, etc.
 .TP
 \f[B]-n \f[BI]NUMBER\f[B]\f[R]
 Specify the number of times to try and remove numbers from the full
