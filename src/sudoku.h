@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdbool.h>
 #include <curses.h>
+#include <time.h>
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -41,3 +42,4 @@ void solve_count(char* sudoku_to_solve, int* count);
 bool solve_user_nums(char* sudoku_str, char* user_nums);
 void generate_visually(char* sudoku_to_display);
 bool check_validity(char* combined_solution);
+void new_sudoku(char* filename, char* target_dir, char* sudoku_str, char* statusbar, time_t t);

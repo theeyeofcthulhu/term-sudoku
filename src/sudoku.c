@@ -334,3 +334,20 @@ bool check_validity(char* combined_solution){
 
 	return true;
 }
+
+void new_sudoku(char* filename, char* target_dir, char* sudoku_str, char* statusbar, time_t t){
+	// localtime struct for file name
+	struct tm tm = *localtime(&t);
+	char* filename_no_dir = malloc(STR_LEN * sizeof(char));
+	// Generate file name with the current time
+	sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+
+	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
+
+	free(filename_no_dir);
+
+	// Generate the sudoku
+	generate_sudoku(sudoku_str);
+
+	sprintf(statusbar, "%s", "Sudoku generated");
+}

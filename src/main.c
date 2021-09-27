@@ -156,16 +156,17 @@ int main(int argc, char **argv){
 		curs_set(0);
 
 		bool chosen = false;
+		bool new_file = false;
 		int position = 0;
 
 		char* temp_file;
 
 		// Choose file by moving cursor
-		while(!chosen){
+		while(!chosen && !new_file){
 
 			erase();
 
-			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, quit - q");
+			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, quit - q");
 
 			for(int j = 0; j < iterator; j++)
 				mvprintw(j + 2, 0, "  %s\n", items[j]);
@@ -198,6 +199,10 @@ int main(int argc, char **argv){
 					break;
 				case 'q':
 					finish(0);
+				case 'n':
+					new_sudoku(filename, target_dir, sudoku_str, statusbar, t);
+					new_file = true;
+					break;
 				default:
 					break;
 			}
@@ -210,24 +215,26 @@ int main(int argc, char **argv){
 
 		curs_set(1);
 
-		sprintf(filename, "%s/%s", target_dir, items[position]);
+		if(!new_file){
+			sprintf(filename, "%s/%s", target_dir, items[position]);
 
-		for(int j = 0; j < iterator; j++)
-			free(items[j]);
+			for(int j = 0; j < iterator; j++)
+				free(items[j]);
 
-		//Read Sudoku from given file
-		FILE* input_file = fopen(filename, "r");
-		if(input_file == NULL)
-			finish_with_err_msg("Error accessing file\n");
+			//Read Sudoku from given file
+			FILE* input_file = fopen(filename, "r");
+			if(input_file == NULL)
+				finish_with_err_msg("Error accessing file\n");
 
-		fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
-		for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-			fscanf(input_file, "%1d", &notes[i]);
-		fclose(input_file);
+			fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
+			for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
+				fscanf(input_file, "%1d", &notes[i]);
+			fclose(input_file);
 
-		sudoku_str[SUDOKU_LEN] = '\0';
+			sudoku_str[SUDOKU_LEN] = '\0';
 
-		sprintf(statusbar, "%s", "File opened");
+			sprintf(statusbar, "%s", "File opened");
+		}
 	// Generate a new sudoku
 	}else if(own_sudoku){
 		sprintf(statusbar, "%s", "Enter your sudoku");
@@ -290,20 +297,7 @@ int main(int argc, char **argv){
 			}
 		}
 	}else{
-		// localtime struct for file name
-		struct tm tm = *localtime(&t);
-		char* filename_no_dir = malloc(STR_LEN * sizeof(char));
-		// Generate file name with the current time
-		sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
-
-		sprintf(filename, "%s/%s", target_dir, filename_no_dir);
-
-		free(filename_no_dir);
-
-		// Generate the sudoku
-		generate_sudoku(sudoku_str);
-
-		sprintf(statusbar, "%s", "Sudoku generated");
+		new_sudoku(filename, target_dir, sudoku_str, statusbar, t);
 	}
 
 	cursor.x = 0;
