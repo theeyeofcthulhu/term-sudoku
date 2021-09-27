@@ -68,49 +68,6 @@ void generate_sudoku(char* gen_sudoku){
 		curs_set(1);
 }
 
-// Solve a sudoku (used in generating)
-bool solve(char* sudoku_to_solve){
-	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
-	if(sudoku_gen_visual)
-		generate_visually(sudoku_to_solve);
-
-	// If sudoku is valid, return
-	if(check_validity(sudoku_to_solve))
-		return true;
-
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		if(sudoku_to_solve[i] == '0'){
-			// Get the fields associated with the value at start
-			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
-
-			// Try to assign a value to the cell at i
-			for(int j = 0x31; j <= 0x39; j++){
-				bool used = false;
-				for(int k = 0; k < LINE_LEN; k++){
-					// Check if the value is valid
-					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
-						used = true;
-				}
-				if(!used){
-					sudoku_to_solve[i] = j;
-					// Check the whole path
-					if(solve(sudoku_to_solve)){
-						free_cell_props(cell_props);
-						return true;
-					}
-
-					// Otherwise, go back to 0
-					sudoku_to_solve[i] = '0';
-				}
-			}
-
-			free_cell_props(cell_props);
-			break;
-		}
-	}
-	return false;
-}
-
 // Try and remove numbers until the solution is not unique
 void remove_nums(char* gen_sudoku){
 	int length = strlen(gen_sudoku) + 1;
@@ -190,6 +147,49 @@ bool solve_user_nums(char* sudoku_str, char* user_nums){
 		}
 	}
 	// Return false if no solution is found
+	return false;
+}
+
+// Solve a sudoku (used in generating)
+bool solve(char* sudoku_to_solve){
+	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
+	if(sudoku_gen_visual)
+		generate_visually(sudoku_to_solve);
+
+	// If sudoku is valid, return
+	if(check_validity(sudoku_to_solve))
+		return true;
+
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		if(sudoku_to_solve[i] == '0'){
+			// Get the fields associated with the value at start
+			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+
+			// Try to assign a value to the cell at i
+			for(int j = 0x31; j <= 0x39; j++){
+				bool used = false;
+				for(int k = 0; k < LINE_LEN; k++){
+					// Check if the value is valid
+					if(cell_props.vert_line[k] == j || cell_props.hor_line[k] == j || cell_props.block[k] == j)
+						used = true;
+				}
+				if(!used){
+					sudoku_to_solve[i] = j;
+					// Check the whole path
+					if(solve(sudoku_to_solve)){
+						free_cell_props(cell_props);
+						return true;
+					}
+
+					// Otherwise, go back to 0
+					sudoku_to_solve[i] = '0';
+				}
+			}
+
+			free_cell_props(cell_props);
+			break;
+		}
+	}
 	return false;
 }
 
@@ -335,6 +335,7 @@ bool check_validity(char* combined_solution){
 	return true;
 }
 
+// Generate a new sudoku for the user to solve
 void new_sudoku(char* filename, char* target_dir, char* sudoku_str, char* statusbar, time_t t){
 	// localtime struct for file name
 	struct tm tm = *localtime(&t);

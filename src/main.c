@@ -144,6 +144,9 @@ int main(int argc, char **argv){
 	// ncurses intializer functions
 	init_ncurses();
 
+	cursor.x = 0;
+	cursor.y = 0;
+
 	// List files and open selected file
 	if(from_file){
 		// Array of strings
@@ -207,6 +210,7 @@ int main(int argc, char **argv){
 					break;
 			}
 
+			// Wrap position according to list size
 			if(position >= iterator)
 				position = 0;
 			else if (position < 0)
@@ -215,6 +219,7 @@ int main(int argc, char **argv){
 
 		curs_set(1);
 
+		// If not generating a new sudoku
 		if(!new_file){
 			sprintf(filename, "%s/%s", target_dir, items[position]);
 
@@ -296,12 +301,9 @@ int main(int argc, char **argv){
 				break;
 			}
 		}
-	}else{
+	// Not own_sudoku nor from_file: generate new sudoku
+	}else
 		new_sudoku(filename, target_dir, sudoku_str, statusbar, t);
-	}
-
-	cursor.x = 0;
-	cursor.y = 0;
 
 	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
 
