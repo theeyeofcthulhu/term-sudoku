@@ -21,11 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
-#include <dirent.h>
 #include <stdbool.h>
 
 #include "util.h"

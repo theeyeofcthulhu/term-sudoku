@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <curses.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <signal.h>
 #include <dirent.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define LINE_LEN 9
