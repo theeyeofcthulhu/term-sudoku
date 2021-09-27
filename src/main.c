@@ -338,7 +338,7 @@ int main(int argc, char **argv){
 			case 's':
 				//Save file and handle errors
 				if(!savestate(filename, sudoku_str, user_nums, notes))
-					finish_with_err_msg("Error accessing file\n");
+					finish_with_err_msg("Error saving file\n");
 				else
 					sprintf(statusbar, "%s", "Saved");
 

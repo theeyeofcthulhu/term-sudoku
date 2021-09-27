@@ -55,8 +55,11 @@ void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 			}
 		}
 		closedir(diretory_object);
-	}else
-		finish_with_err_msg("Directory could not be opened or does not exist\n");
+	}else{
+		char* err_message = malloc(STR_LEN * sizeof(char));
+		sprintf(err_message, "Directory \'%s\' could not be opened or does not exist\n", target_dir);
+		finish_with_err_msg(err_message);
+	}
 	if(*iterator == 0)
 		finish_with_err_msg("No files available\n");
 }
