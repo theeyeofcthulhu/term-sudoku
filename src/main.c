@@ -263,17 +263,13 @@ int main(int argc, char **argv){
 				move_cursor(cursor);
 				break;
 			case 'd':
-				confirmation = status_bar_confirmation("Sure? y/n", custom_sudoku_controls);
-				if(confirmation != 'y')
-					break;
+				if(!status_bar_confirmation("Sure? y/n", custom_sudoku_controls)) break;
 
 				sprintf(statusbar, "Sudoku entered");
 				done = true;
 				break;
 			case 'q':
-				confirmation = status_bar_confirmation("Sure? y/n", custom_sudoku_controls);
-				if(confirmation != 'y')
-					break;
+				if(!status_bar_confirmation("Sure? y/n", custom_sudoku_controls)) break;
 
 				finish(0);
 			//Input numbers into the user sudoku field
@@ -367,9 +363,7 @@ int main(int argc, char **argv){
 				break;
 			//Fill out sudoku; ask for confirmation first
 			case 'd':
-				confirmation = status_bar_confirmation("Sure? y/n", controls);
-				if(confirmation != 'y')
-					break;
+				if(!status_bar_confirmation("Sure? y/n", controls)) break;
 
 				solve_user_nums(sudoku_str,	user_nums);
 				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
@@ -385,9 +379,7 @@ int main(int argc, char **argv){
 				break;
 			//Exit; ask for confirmation
 			case 'q':
-				confirmation = status_bar_confirmation("Sure? y/n", controls);
-				if(confirmation != 'y')
-					break;
+				if(!status_bar_confirmation("Sure? y/n", controls)) break;
 
 				finish(0);
 			//Input numbers into the user sudoku field
@@ -419,9 +411,10 @@ int main(int argc, char **argv){
 	}
 }
 
-char status_bar_confirmation(char* message, char* controls){
+bool status_bar_confirmation(char* message, char* controls){
 	if(!ask_confirmation)
-		return 'y';
+		return true;
+
 	char* statusbar_backup = malloc(30 * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
@@ -434,5 +427,8 @@ char status_bar_confirmation(char* message, char* controls){
 	free(statusbar_backup);
 	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
 
-	return confirm_quit;
+	if(confirm_quit != 'y')
+		return false;
+
+	return true;
 }

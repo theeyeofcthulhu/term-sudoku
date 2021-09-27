@@ -38,4 +38,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
 
-char status_bar_confirmation(char* message, char* controls);
+bool status_bar_confirmation(char* message, char* controls);
