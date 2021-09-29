@@ -98,11 +98,11 @@ int main(int argc, char **argv){
 	time_t t = time(NULL);
 	srand((unsigned) time(&t));
 
-	// Get user home directory
-	struct passwd *pw = getpwuid(getuid());
-	home_dir = pw->pw_dir;
-
+	// Set dir as $HOME/.local/share
 	if(custom_dir == NULL){
+		// Get user home directory
+		struct passwd *pw = getpwuid(getuid());
+		home_dir = pw->pw_dir;
 		// target is: $HOME/.local/share/term-sudoku
 		target_dir = malloc(STR_LEN * sizeof(char));
 		sprintf(target_dir, "%s/%s", home_dir, sharepath);
@@ -233,7 +233,6 @@ int main(int argc, char **argv){
 						"x or 0 - delete numbers\n"
 						"done - d\n"
 						"quit - q\n";
-		erase();
 		draw(custom_sudoku_controls);
 		bool done = false;
 
@@ -291,9 +290,6 @@ int main(int argc, char **argv){
 
 	draw(controls);
 
-	char* combined_solution;
-	char confirmation;
-
 	//Main loop: wait for keypress, then process it
 	while(true){
 		char key_press = getch();
@@ -326,9 +322,9 @@ int main(int argc, char **argv){
 
 				break;
 			case 'c':
+			{
 				//Check for errors (writes to statusbar directly)
-
-				combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
+				char* combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
 				for(int i = 0; i < SUDOKU_LEN; i++)
 					combined_solution[i] = sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
 
@@ -341,6 +337,7 @@ int main(int argc, char **argv){
 
 				free(combined_solution);
 				break;
+			}
 			//Fill out sudoku; ask for confirmation first
 			case 'd':
 				if(!status_bar_confirmation("Sure? y/n", controls)) break;
@@ -392,6 +389,7 @@ int main(int argc, char **argv){
 }
 
 bool status_bar_confirmation(char* message, char* controls){
+	// Return if the '-c' flag is set (the user does not want to be asked)
 	if(!ask_confirmation)
 		return true;
 

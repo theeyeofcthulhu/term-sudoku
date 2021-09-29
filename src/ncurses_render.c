@@ -46,6 +46,10 @@ void init_ncurses(){
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }
 
+/*
+** Draws everything.
+** Controls are variable, the sudokus are global variables.
+*/
 void draw(char* controls){
 	erase();
 	if(!render_small_mode)
