@@ -21,11 +21,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 bool sudoku_gen_visual = false;
 int sudoku_attempts = ATTEMPTS_DEFAULT;
 
+char* user_nums;
+char* sudoku_str;
+int* notes;
+
 struct sudoku_cell_props{
 	char* vert_line;
 	char* hor_line;
 	char* block;
 };
+
+void init_sudoku_strings(){
+	// Array for sudoku
+	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	for(int i = 0; i < SUDOKU_LEN; sudoku_str[i++] = '0');
+	sudoku_str[SUDOKU_LEN] = '\0';
+
+	// Array for numbers the user enters
+	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	for(int i = 0; i < SUDOKU_LEN; user_nums[i++] = '0');
+	user_nums[SUDOKU_LEN] = '\0';
+
+	// Array for notetaking
+	notes = malloc((SUDOKU_LEN * LINE_LEN + 1) * sizeof(int));
+	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
+	notes[SUDOKU_LEN * LINE_LEN] = '\0';
+}
 
 // Generate a random sudoku
 // This function generates the diagonal blocks from left to right and then calls solve()
@@ -336,7 +357,7 @@ bool check_validity(char* combined_solution){
 }
 
 // Generate a new sudoku for the user to solve
-void new_sudoku(char* filename, char* target_dir, char* sudoku_str, char* statusbar, time_t t){
+void new_sudoku(char* statusbar, char* filename, char* target_dir, time_t t){
 	// localtime struct for file name
 	struct tm tm = *localtime(&t);
 	char* filename_no_dir = malloc(STR_LEN * sizeof(char));

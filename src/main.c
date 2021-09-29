@@ -18,10 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "main.h"
 
-char* user_nums;
-char* sudoku_str;
-struct cursor cursor;
-char* statusbar;
 char* controls = "move - h, j, k and l\n"
 				 "1-9 - insert numbers\n"
 				 "x or 0 - delete numbers\n"
@@ -31,7 +27,6 @@ char* controls = "move - h, j, k and l\n"
 				 "notetaking mode - e\n"
 				 "quit - q\n";
 bool editing_notes = false;
-int* notes;
 
 bool from_file = false;
 bool own_sudoku = false;
@@ -120,37 +115,24 @@ int main(int argc, char **argv){
 		target_dir = custom_dir;
 
 	// Allocate strings, fill with zeros and null-terminate
+	init_sudoku_strings();
 
-	// Array for sudoku
-	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
-	for(int i = 0; i < SUDOKU_LEN; sudoku_str[i++] = '0');
-	sudoku_str[SUDOKU_LEN] = '\0';
-
-	// Array for numbers the user enters
-	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
-	for(int i = 0; i < SUDOKU_LEN; user_nums[i++] = '0');
-	user_nums[SUDOKU_LEN] = '\0';
-
-	// Array for notetaking
-	notes = malloc((SUDOKU_LEN * LINE_LEN + 1) * sizeof(int));
-	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
-	notes[SUDOKU_LEN * LINE_LEN] = '\0';
-
-	// String for the statusbar
+	// String for the statusbar and filename
 	statusbar = malloc(STR_LEN * sizeof(char));
-
 	filename = malloc(STR_LEN * sizeof(char));
 
 	// ncurses intializer functions
 	init_ncurses();
 
+	// initialize cursor struct, responsible for storing x and y coordinations for the cursor
 	cursor.x = 0;
 	cursor.y = 0;
 
 	// List files and open selected file
 	if(from_file){
-		// Array of strings
+		// Array of strings (in this case: directories)
 		char* items[STR_LEN];
+		// Holds the size of 'items'
 		int iterator = 0;
 
 		// Load files in directory into items
@@ -203,7 +185,7 @@ int main(int argc, char **argv){
 				case 'q':
 					finish(0);
 				case 'n':
-					new_sudoku(filename, target_dir, sudoku_str, statusbar, t);
+					new_sudoku(statusbar, filename, target_dir, t);
 					new_file = true;
 					break;
 				default:
@@ -220,27 +202,30 @@ int main(int argc, char **argv){
 		curs_set(1);
 
 		// If not generating a new sudoku
-		if(!new_file){
+		if(chosen){
 			sprintf(filename, "%s/%s", target_dir, items[position]);
 
 			for(int j = 0; j < iterator; j++)
 				free(items[j]);
 
-			//Read Sudoku from given file
+			// Read Sudoku from given file
 			FILE* input_file = fopen(filename, "r");
-			if(input_file == NULL)
-				finish_with_err_msg("Error accessing file\n");
+			if(input_file == NULL){
+				char* err_message = malloc(STR_LEN * sizeof(char));
+				sprintf(err_message, "Error accessing file %s\n", filename);
+				finish_with_err_msg(err_message);
+			}
 
+			// Scan in the first two lines which are the puzzle and the entered user_nums
 			fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
+			// Read in notes into the array
 			for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
 				fscanf(input_file, "%1d", &notes[i]);
 			fclose(input_file);
 
-			sudoku_str[SUDOKU_LEN] = '\0';
-
 			sprintf(statusbar, "%s", "File opened");
 		}
-	// Generate a new sudoku
+	// User enters a new sudoku
 	}else if(own_sudoku){
 		sprintf(statusbar, "%s", "Enter your sudoku");
 		char* custom_sudoku_controls = "move - h, j, k and l\n"
@@ -249,8 +234,7 @@ int main(int argc, char **argv){
 						"done - d\n"
 						"quit - q\n";
 		erase();
-		draw(statusbar, custom_sudoku_controls, notes, sudoku_str, user_nums, cursor);
-		char confirmation;
+		draw(custom_sudoku_controls);
 		bool done = false;
 
 		// Loop for entering your own sudoku
@@ -260,19 +244,19 @@ int main(int argc, char **argv){
 			switch(key_press){
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'j':
 				cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'k':
 				cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'l':
 				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'd':
 				if(!status_bar_confirmation("Sure? y/n", custom_sudoku_controls)) break;
@@ -291,21 +275,21 @@ int main(int argc, char **argv){
 				//check for numbers
 				if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
 					sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
-					draw(statusbar, custom_sudoku_controls, notes, sudoku_str, sudoku_str, cursor);
+					draw(custom_sudoku_controls);
 				}
 				//check for x
 				else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
 					sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
-					draw(statusbar, custom_sudoku_controls, notes, sudoku_str, sudoku_str, cursor);
+					draw(custom_sudoku_controls);
 				}
 				break;
 			}
 		}
 	// Not own_sudoku nor from_file: generate new sudoku
 	}else
-		new_sudoku(filename, target_dir, sudoku_str, statusbar, t);
+		new_sudoku(statusbar, filename, target_dir, t);
 
-	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+	draw(controls);
 
 	char* combined_solution;
 	char confirmation;
@@ -317,19 +301,19 @@ int main(int argc, char **argv){
 		switch(key_press){
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'j':
 				cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'k':
 				cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 'l':
 				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
-				move_cursor(cursor);
+				move_cursor();
 				break;
 			case 's':
 				//Save file and handle errors
@@ -338,7 +322,7 @@ int main(int argc, char **argv){
 				else
 					sprintf(statusbar, "%s", "Saved");
 
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+				draw(controls);
 
 				break;
 			case 'c':
@@ -353,7 +337,7 @@ int main(int argc, char **argv){
 				else
 					sprintf(statusbar, "%s", "Invalid or not filled out");
 
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+				draw(controls);
 
 				free(combined_solution);
 				break;
@@ -362,7 +346,7 @@ int main(int argc, char **argv){
 				if(!status_bar_confirmation("Sure? y/n", controls)) break;
 
 				solve_user_nums(sudoku_str,	user_nums);
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+				draw(controls);
 				break;
 			case 'e':
 				if(render_small_mode)
@@ -371,7 +355,7 @@ int main(int argc, char **argv){
 				char* mode = editing_notes == 1 ? "Note\0" : "Normal\0";
 				sprintf(statusbar, "%s %s", mode, "Mode");
 
-				draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+				draw(controls);
 				break;
 			//Exit; ask for confirmation
 			case 'q':
@@ -387,19 +371,19 @@ int main(int argc, char **argv){
 					if(key_press > 0x30 && key_press <= 0x39){
 						int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - 0x31)];
 						*target = !*target;
-						draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+						draw(controls);
 					}
 				//Check if the field is empty in the puzzle
 				}else if(sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0'){
 					//check for numbers
 					if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){ 
 						user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
-						draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+						draw(controls);
 					}
 					//check for x
 					else if(key_press == 'x' && user_nums[cursor.y * LINE_LEN + cursor.x] != '0'){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = '0';
-						draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+						draw(controls);
 					}
 				}
 				break;
@@ -415,13 +399,13 @@ bool status_bar_confirmation(char* message, char* controls){
 	strcpy(statusbar_backup, statusbar);
 
 	sprintf(statusbar, "%s", message);
-	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+	draw(controls);
 
 	char confirm_quit = getch();
 
 	sprintf(statusbar, "%s", statusbar_backup);
 	free(statusbar_backup);
-	draw(statusbar, controls, notes, sudoku_str, user_nums, cursor);
+	draw(controls);
 
 	if(confirm_quit != 'y')
 		return false;

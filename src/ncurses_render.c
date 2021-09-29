@@ -19,6 +19,8 @@ along with this program.  If not, see <https:// www.gnu.org/licenses/>.
 #include "ncurses_render.h"
 
 bool render_small_mode = false;
+char* statusbar;
+struct cursor cursor;
 
 // curses init logic
 void init_ncurses(){
@@ -44,7 +46,7 @@ void init_ncurses(){
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }
 
-void draw(char* statusbar, char* controls, int* notes, char* sudoku_str, char* user_nums, struct cursor cursor){
+void draw(char* controls){
 	erase();
 	if(!render_small_mode)
 		read_notes(notes);
@@ -155,7 +157,7 @@ void read_sudoku(char* sudoku, int color_mode){
 	}
 }
 
-void read_notes(int* notes){
+void read_notes(){
 	attron(COLOR_PAIR(3));
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		for(int j = 0; j < LINE_LEN; j++){
@@ -168,7 +170,7 @@ void read_notes(int* notes){
 }
 
 // Move cursor but don't get into the seperators
-void move_cursor(struct cursor cursor){
+void move_cursor(){
 	if(render_small_mode)
 		move(cursor.y + (cursor.y / 3) + 1, cursor.x + (cursor.x / 3) + 1);
 	else
@@ -177,7 +179,7 @@ void move_cursor(struct cursor cursor){
 
 // Draw user numbers and the given sudoku in different colors
 // Draw the user numbers under the given sudoku so the latter can't be overwritten
-void draw_sudokus(char* sudoku_str, char* user_nums){
+void draw_sudokus(){
 	attron(COLOR_PAIR(2));
 	read_sudoku(user_nums, 2);
 

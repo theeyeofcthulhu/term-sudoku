@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 #include "util.h"
+#include "sudoku.h"
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
@@ -26,15 +27,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define STR_LEN 80
 
 extern bool render_small_mode;
+extern char* statusbar;
 
 struct cursor{
 	int y;
 	int x;
 };
 
+extern struct cursor cursor;
+
 void init_ncurses();
-void draw(char* statusbar, char* controls, int* notes, char* sudoku_str, char* user_nums, struct cursor cursor);
+void draw(char* controls);
 void read_sudoku(char* sudoku, int color_mode);
-void move_cursor(struct cursor cursor);
-void draw_sudokus(char* sudoku_str, char* user_nums);
-void read_notes(int* notes);
+void move_cursor();
+void draw_sudokus();
+void read_notes();

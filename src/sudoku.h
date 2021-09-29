@@ -30,10 +30,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
+extern char* user_nums;
+extern char* sudoku_str;
+extern int* notes;
 
 struct sudoku_cell_props;
 
 struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
+void init_sudoku_strings();
 void free_cell_props(struct sudoku_cell_props cell);
 void generate_sudoku(char* gen_sudoku);
 void remove_nums(char* gen_sudoku);
@@ -42,4 +46,4 @@ void solve_count(char* sudoku_to_solve, int* count);
 bool solve_user_nums(char* sudoku_str, char* user_nums);
 void generate_visually(char* sudoku_to_display);
 bool check_validity(char* combined_solution);
-void new_sudoku(char* filename, char* target_dir, char* sudoku_str, char* statusbar, time_t t);
+void new_sudoku(char* statusbar, char* filename, char* target_dir, time_t t);
