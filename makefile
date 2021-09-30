@@ -9,7 +9,7 @@ ODIR = bin
 PREFIX = /usr/local
 MANPATH = $(PREFIX)/share/man
 
-term-sudoku: $(EXE)
+build: $(EXE)
 
 run: $(EXE)
 	bin/term-sudoku
