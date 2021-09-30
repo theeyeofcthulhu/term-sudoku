@@ -38,7 +38,7 @@ void finish_with_err_msg(char* msg){
 }
 
 // List files in a directory into items (iterator will be returned as the actual size of items)
-void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
+void listfiles(char* target_dir, char* items[], int* iterator){
 
 	// Set iterator
 	*iterator = 0;
@@ -80,7 +80,8 @@ bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes){
 	return true;
 }
 
-bool status_bar_confirmation(char* message, char* controls){
+// Ask for confirmation by displaying
+bool status_bar_confirmation(){
 	// Return if the '-c' flag is set (the user does not want to be asked)
 	if(!util_ask_confirmation)
 		return true;
@@ -88,14 +89,14 @@ bool status_bar_confirmation(char* message, char* controls){
 	char* statusbar_backup = malloc(30 * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
-	sprintf(statusbar, "%s", message);
-	draw(controls);
+	sprintf(statusbar, "%s", "Sure? y/n");
+	draw();
 
 	char confirm_quit = getch();
 
 	sprintf(statusbar, "%s", statusbar_backup);
 	free(statusbar_backup);
-	draw(controls);
+	draw();
 
 	if(confirm_quit != 'y')
 		return false;

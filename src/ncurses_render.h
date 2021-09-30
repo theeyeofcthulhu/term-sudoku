@@ -20,12 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "util.h"
 #include "sudoku.h"
-
-#define LINE_LEN 9
-#define SUDOKU_LEN 81
-#define ATTEMPTS_DEFAULT 5
-#define VISUAL_SLEEP 10000
-#define STR_LEN 80
+#include "main.h"
 
 extern bool render_small_mode;
 extern char* statusbar;
@@ -38,7 +33,7 @@ struct cursor{
 extern struct cursor cursor;
 
 void init_ncurses();
-void draw(char* controls);
+void draw();
 void read_sudoku(char* sudoku, int color_mode);
 void move_cursor();
 void draw_sudokus();

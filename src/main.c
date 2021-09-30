@@ -13,12 +13,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program.  If not, see <https:// www.gnu.org/licenses/>.
 */
 
 #include "main.h"
 
-char* controls = "move - h, j, k and l\n"
+char* controls_default = "move - h, j, k and l\n"
 				 "1-9 - insert numbers\n"
 				 "x or 0 - delete numbers\n"
 				 "save - s\n"
@@ -26,6 +26,8 @@ char* controls = "move - h, j, k and l\n"
 				 "solve sudoku - d\n"
 				 "notetaking mode - e\n"
 				 "quit - q\n";
+char* controls;
+
 bool editing_notes = false;
 
 bool from_file = false;
@@ -39,9 +41,9 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
-	// Handle command line input
+	// Handle command line input with getopt
 	int flag;
-	while ((flag = getopt (argc, argv, "hsvfecd:n:")) != -1){
+	while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1){
 		switch (flag){
 		case 'h':
 			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
@@ -93,7 +95,7 @@ int main(int argc, char **argv){
 	if(from_file && own_sudoku)
 		finish_with_err_msg("Mutually exclusive flags given!\n");
 
-	//Initialize time and seed random
+	// Initialize time and seed random
 	time_t t = time(NULL);
 	srand((unsigned) time(&t));
 
@@ -115,6 +117,8 @@ int main(int argc, char **argv){
 
 	// Allocate strings, fill with zeros and null-terminate
 	init_sudoku_strings();
+
+	controls = controls_default;
 
 	// String for the statusbar and filename
 	statusbar = malloc(STR_LEN * sizeof(char));
@@ -160,7 +164,7 @@ int main(int argc, char **argv){
 
 			char key_press = getch();
 
-			//Move on vim keys and bind to items
+			// Move on vim keys and bind to item size later
 			switch(key_press){
 				case 'j':
 					position += 1;
@@ -183,6 +187,7 @@ int main(int argc, char **argv){
 					break;
 				case 'q':
 					finish(0);
+				// Create a new file instead of reading one
 				case 'n':
 					new_sudoku(statusbar, filename, target_dir, t);
 					new_file = true;
@@ -231,18 +236,21 @@ int main(int argc, char **argv){
 	// User enters a new sudoku
 	}else if(own_sudoku){
 		sprintf(statusbar, "%s", "Enter your sudoku");
+		// Controls displayed only in this view
 		char* custom_sudoku_controls = "move - h, j, k and l\n"
 						"1-9 - insert numbers\n"
 						"x or 0 - delete numbers\n"
 						"done - d\n"
 						"quit - q\n";
-		draw(custom_sudoku_controls);
+		controls = custom_sudoku_controls;
+		// Draw with new controls
+		draw();
 		bool done = false;
 
-		// Loop for entering your own sudoku
+		// Loop for entering own sudoku
 		while(!done){
 			char key_press = getch();
-			//Move on vim keys and bind to field size
+			// Move on vim keys and bind to field size
 			switch(key_press){
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
@@ -261,28 +269,28 @@ int main(int argc, char **argv){
 				move_cursor();
 				break;
 			case 'd':
-				if(!status_bar_confirmation("Sure? y/n", custom_sudoku_controls)) break;
+				if(!status_bar_confirmation()) break;
 
 				sprintf(statusbar, "Sudoku entered");
 				done = true;
 				break;
 			case 'q':
-				if(!status_bar_confirmation("Sure? y/n", custom_sudoku_controls)) break;
+				if(!status_bar_confirmation()) break;
 
 				finish(0);
-			//Input numbers into the user sudoku field
+			// Input numbers into the user sudoku field
 			default:
-				//Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
+				// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
 
-				//check for numbers
+				// check for numbers
 				if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
 					sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
-					draw(custom_sudoku_controls);
+					draw();
 				}
-				//check for x
+				// check for x
 				else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
 					sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
-					draw(custom_sudoku_controls);
+					draw();
 				}
 				break;
 			}
@@ -291,13 +299,16 @@ int main(int argc, char **argv){
 	}else
 		new_sudoku(statusbar, filename, target_dir, t);
 
-	draw(controls);
+	controls = controls_default;
 
-	//Main loop: wait for keypress, then process it
+	draw();
+
+	// Main loop: wait for keypress, then process it
 	while(true){
 		char key_press = getch();
-		//Move on vim keys and bind to field size
 		switch(key_press){
+			// Move on vim keys and bind to field size
+			//
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
 				move_cursor();
@@ -314,8 +325,8 @@ int main(int argc, char **argv){
 				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
 				move_cursor();
 				break;
+			// Save file and handle errors
 			case 's':
-				//Save file and handle errors
 				if(!savestate(filename, sudoku_str, user_nums, notes)){
 					char* err_message = malloc(STR_LEN * sizeof(char));
 					sprintf(err_message, "Error saving file '%s'\n", filename);
@@ -324,12 +335,12 @@ int main(int argc, char **argv){
 				else
 					sprintf(statusbar, "%s", "Saved");
 
-				draw(controls);
+				draw();
 
 				break;
+			// Check for errors and write result to statusbar
 			case 'c':
 			{
-				//Check for errors (writes to statusbar directly)
 				char* combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
 				for(int i = 0; i < SUDOKU_LEN; i++)
 					combined_solution[i] = sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
@@ -339,59 +350,61 @@ int main(int argc, char **argv){
 				else
 					sprintf(statusbar, "%s", "Invalid or not filled out");
 
-				draw(controls);
+				draw();
 
 				free(combined_solution);
 				break;
 			}
-			//Fill out sudoku; ask for confirmation first
+			// Fill out sudoku; ask for confirmation first
 			case 'd':
-				if(!status_bar_confirmation("Sure? y/n", controls)) break;
+				if(!status_bar_confirmation()) break;
 
 				solve_user_nums(sudoku_str,	user_nums);
-				draw(controls);
+				draw();
 				break;
+			// Enter edit mode
 			case 'e':
 				if(render_small_mode)
 					break;
 				editing_notes = !editing_notes;
-				char* mode = editing_notes == 1 ? "Note\0" : "Normal\0";
+				char* mode = editing_notes == 1 ? "Note" : "Normal";
 				sprintf(statusbar, "%s %s", mode, "Mode");
 
-				draw(controls);
+				draw();
 				break;
-			//Exit; ask for confirmation
+			// Exit; ask for confirmation
 			case 'q':
-				if(!status_bar_confirmation("Sure? y/n", controls)) break;
+				if(!status_bar_confirmation()) break;
 
 				finish(0);
-			//Input numbers into the user sudoku field
+			// Input numbers into the user sudoku field
 			default:
-				//Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
+				// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
 
-				//Check if the field is empty in the puzzle
+				// Check if the field is empty in the puzzle
 				if(sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0'){
-					//Toggle the note fields
+					// Toggle the note fields (if in note mode)
 					if(editing_notes){
 						if(key_press > 0x30 && key_press <= 0x39){
+							// Access cursor location in array and add key_press for appropriate number
 							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - 0x31)];
 							*target = !*target;
-							draw(controls);
+							draw();
 						}
-					//check for numbers
+					// Check for numbers and place the number in user_nums
 					}else if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
-						// Clear notes off of target file
+						// Clear notes off of target cell
 						for (int i = 0; i < LINE_LEN; i++) {
 							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + i];
 							*target = 0;
 						}
-						draw(controls);
+						draw();
 					}
-					//check for x
+					// Check for x and clear the number (same as pressing space in the above conditional)
 					else if(key_press == 'x' && user_nums[cursor.y * LINE_LEN + cursor.x] != '0'){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = '0';
-						draw(controls);
+						draw();
 					}
 				}
 				break;

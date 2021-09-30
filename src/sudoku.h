@@ -24,11 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <curses.h>
 #include <time.h>
 
-#define LINE_LEN 9
-#define SUDOKU_LEN 81
-#define ATTEMPTS_DEFAULT 5
-#define VISUAL_SLEEP 10000
-#define STR_LEN 80
+#include "main.h"
 
 extern bool sudoku_gen_visual;
 extern int sudoku_attempts;

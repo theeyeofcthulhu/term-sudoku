@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <stdio.h>
 #include <curses.h>
 #include <stdlib.h>
@@ -28,6 +30,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "util.h"
 #include "sudoku.h"
 #include "ncurses_render.h"
+
+extern char* controls;
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81

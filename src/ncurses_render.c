@@ -50,7 +50,7 @@ void init_ncurses(){
 ** Draws everything.
 ** Controls are variable, the sudokus are global variables.
 */
-void draw(char* controls){
+void draw(){
 	erase();
 	if(!render_small_mode)
 		read_notes(notes);

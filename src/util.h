@@ -26,17 +26,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 
 #include "ncurses_render.h"
-
-#define LINE_LEN 9
-#define SUDOKU_LEN 81
-#define ATTEMPTS_DEFAULT 5
-#define VISUAL_SLEEP 10000
-#define STR_LEN 80
+#include "main.h"
 
 extern bool util_ask_confirmation;
 
 void finish(int sig);
 void finish_with_err_msg(char* msg);
-void listfiles(char* target_dir, char* items[STR_LEN], int* iterator);
+void listfiles(char* target_dir, char* items[], int* iterator);
 bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes);
-bool status_bar_confirmation(char* message, char* controls);
+bool status_bar_confirmation();
