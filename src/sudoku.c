@@ -121,7 +121,7 @@ void remove_nums(char* gen_sudoku){
 }
 
 // Solve the sudoku on screen (fill in user_nums)
-bool solve_user_nums(char* sudoku_str, char* user_nums){
+bool solve_user_nums(){
 	// Combine entered numbers and puzzle to check if it is correct
 	char* combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
 	for(int i = 0; i < SUDOKU_LEN; i++)
@@ -150,7 +150,7 @@ bool solve_user_nums(char* sudoku_str, char* user_nums){
 				if(!used){
 					user_nums[i] = j;
 					// Check the whole path
-					if(solve_user_nums(sudoku_str, user_nums)){
+					if(solve_user_nums()){
 						free_cell_props(cell_props);
 						free(combined_solution);
 						return true;

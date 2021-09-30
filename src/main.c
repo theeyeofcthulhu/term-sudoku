@@ -359,7 +359,7 @@ int main(int argc, char **argv){
 			case 'd':
 				if(!status_bar_confirmation()) break;
 
-				solve_user_nums(sudoku_str,	user_nums);
+				solve_user_nums();
 				draw();
 				break;
 			// Enter edit mode
