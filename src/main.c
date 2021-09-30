@@ -41,6 +41,8 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
+	controls = controls_default;
+
 	// Handle command line input with getopt
 	int flag;
 	while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1){
@@ -117,8 +119,6 @@ int main(int argc, char **argv){
 
 	// Allocate strings, fill with zeros and null-terminate
 	init_sudoku_strings();
-
-	controls = controls_default;
 
 	// String for the statusbar and filename
 	statusbar = malloc(STR_LEN * sizeof(char));
