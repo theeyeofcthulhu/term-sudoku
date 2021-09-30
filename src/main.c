@@ -30,7 +30,6 @@ bool editing_notes = false;
 
 bool from_file = false;
 bool own_sudoku = false;
-bool ask_confirmation = true;
 
 char* custom_dir;
 
@@ -78,7 +77,7 @@ int main(int argc, char **argv){
 			from_file = true;
 			break;
 		case 'c':
-			ask_confirmation = false;
+			util_ask_confirmation = false;
 			break;
 		case 's':
 			render_small_mode = true;
@@ -198,13 +197,14 @@ int main(int argc, char **argv){
 					position = 0;
 				else if (position < 0)
 					position = iterator - 1;
+			// Keep position 0 if no files are available
 			}else
 				position = 0;
 		}
 
 		curs_set(1);
 
-		// If not generating a new sudoku
+		// Reading the file
 		if(chosen){
 			sprintf(filename, "%s/%s", target_dir, items[position]);
 
@@ -215,7 +215,7 @@ int main(int argc, char **argv){
 			FILE* input_file = fopen(filename, "r");
 			if(input_file == NULL){
 				char* err_message = malloc(STR_LEN * sizeof(char));
-				sprintf(err_message, "Error accessing file %s\n", filename);
+				sprintf(err_message, "Error accessing file '%s'\n", filename);
 				finish_with_err_msg(err_message);
 			}
 
@@ -316,8 +316,11 @@ int main(int argc, char **argv){
 				break;
 			case 's':
 				//Save file and handle errors
-				if(!savestate(filename, sudoku_str, user_nums, notes))
-					finish_with_err_msg("Error saving file\n");
+				if(!savestate(filename, sudoku_str, user_nums, notes)){
+					char* err_message = malloc(STR_LEN * sizeof(char));
+					sprintf(err_message, "Error saving file '%s'\n", filename);
+					finish_with_err_msg(err_message);
+				}
 				else
 					sprintf(statusbar, "%s", "Saved");
 
@@ -389,27 +392,4 @@ int main(int argc, char **argv){
 				break;
 		}
 	}
-}
-
-bool status_bar_confirmation(char* message, char* controls){
-	// Return if the '-c' flag is set (the user does not want to be asked)
-	if(!ask_confirmation)
-		return true;
-
-	char* statusbar_backup = malloc(30 * sizeof(char));
-	strcpy(statusbar_backup, statusbar);
-
-	sprintf(statusbar, "%s", message);
-	draw(controls);
-
-	char confirm_quit = getch();
-
-	sprintf(statusbar, "%s", statusbar_backup);
-	free(statusbar_backup);
-	draw(controls);
-
-	if(confirm_quit != 'y')
-		return false;
-
-	return true;
 }

@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef UTIL_H
+#define UTIL_H
+
 #include <curses.h>
 #include <unistd.h>
 #include <signal.h>
@@ -23,13 +26,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 
+#include "ncurses_render.h"
+
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
 #define ATTEMPTS_DEFAULT 5
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
 
+extern bool util_ask_confirmation;
+
 void finish(int sig);
 void finish_with_err_msg(char* msg);
 void listfiles(char* target_dir, char* items[STR_LEN], int* iterator);
 bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes);
+bool status_bar_confirmation(char* message, char* controls);
+
+#endif

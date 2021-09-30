@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "util.h"
 
+bool util_ask_confirmation = true;
+
 // Exit ncurses cleanly
 
 void finish(int sig){
@@ -57,7 +59,7 @@ void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 		closedir(diretory_object);
 	}else{
 		char* err_message = malloc(STR_LEN * sizeof(char));
-		sprintf(err_message, "Directory \'%s\' could not be opened or does not exist\n", target_dir);
+		sprintf(err_message, "Directory '%s' could not be opened or does not exist\n", target_dir);
 		finish_with_err_msg(err_message);
 	}
 }
@@ -74,6 +76,29 @@ bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes){
 		fprintf(savestate, "%d", notes[i]);
 	fprintf(savestate, "\n");
 	fclose(savestate);
+
+	return true;
+}
+
+bool status_bar_confirmation(char* message, char* controls){
+	// Return if the '-c' flag is set (the user does not want to be asked)
+	if(!util_ask_confirmation)
+		return true;
+
+	char* statusbar_backup = malloc(30 * sizeof(char));
+	strcpy(statusbar_backup, statusbar);
+
+	sprintf(statusbar, "%s", message);
+	draw(controls);
+
+	char confirm_quit = getch();
+
+	sprintf(statusbar, "%s", statusbar_backup);
+	free(statusbar_backup);
+	draw(controls);
+
+	if(confirm_quit != 'y')
+		return false;
 
 	return true;
 }

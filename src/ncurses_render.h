@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifndef NCURSES_RENDER_H
+#define NCURSES_RENDER_H
 
 #include "util.h"
 #include "sudoku.h"
@@ -42,3 +44,5 @@ void read_sudoku(char* sudoku, int color_mode);
 void move_cursor();
 void draw_sudokus();
 void read_notes();
+
+#endif
