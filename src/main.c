@@ -369,18 +369,23 @@ int main(int argc, char **argv){
 			default:
 				//Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
 
-				//Toggle the note fields
-				if(editing_notes){
-					if(key_press > 0x30 && key_press <= 0x39){
-						int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - 0x31)];
-						*target = !*target;
-						draw(controls);
-					}
 				//Check if the field is empty in the puzzle
-				}else if(sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0'){
+				if(sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0'){
+					//Toggle the note fields
+					if(editing_notes){
+						if(key_press > 0x30 && key_press <= 0x39){
+							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - 0x31)];
+							*target = !*target;
+							draw(controls);
+						}
 					//check for numbers
-					if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){ 
+					}else if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
+						// Clear notes off of target file
+						for (int i = 0; i < LINE_LEN; i++) {
+							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + i];
+							*target = 0;
+						}
 						draw(controls);
 					}
 					//check for x
