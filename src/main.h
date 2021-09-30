@@ -34,5 +34,3 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define ATTEMPTS_DEFAULT 5
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
-
-bool status_bar_confirmation(char* message, char* controls);

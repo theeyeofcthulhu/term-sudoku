@@ -16,8 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 #include <curses.h>
 #include <unistd.h>
@@ -41,5 +40,3 @@ void finish_with_err_msg(char* msg);
 void listfiles(char* target_dir, char* items[STR_LEN], int* iterator);
 bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes);
 bool status_bar_confirmation(char* message, char* controls);
-
-#endif

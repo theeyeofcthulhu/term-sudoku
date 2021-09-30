@@ -16,8 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SUDOKU_H
-#define SUDOKU_H
+#pragma once
 
 #include <string.h>
 #include <stdlib.h>
@@ -50,5 +49,3 @@ bool solve_user_nums(char* sudoku_str, char* user_nums);
 void generate_visually(char* sudoku_to_display);
 bool check_validity(char* combined_solution);
 void new_sudoku(char* statusbar, char* filename, char* target_dir, time_t t);
-
-#endif
