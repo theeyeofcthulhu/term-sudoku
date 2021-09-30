@@ -192,11 +192,14 @@ int main(int argc, char **argv){
 					break;
 			}
 
-			// Wrap position according to list size
-			if(position >= iterator)
+			if(iterator != 0){
+				// Wrap position according to list size
+				if(position >= iterator)
+					position = 0;
+				else if (position < 0)
+					position = iterator - 1;
+			}else
 				position = 0;
-			else if (position < 0)
-				position = iterator - 1;
 		}
 
 		curs_set(1);

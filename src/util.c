@@ -60,8 +60,6 @@ void listfiles(char* target_dir, char* items[STR_LEN], int* iterator){
 		sprintf(err_message, "Directory \'%s\' could not be opened or does not exist\n", target_dir);
 		finish_with_err_msg(err_message);
 	}
-	if(*iterator == 0)
-		finish_with_err_msg("No files available\n");
 }
 
 // Write sudoku_str, user_nums and notes to file
