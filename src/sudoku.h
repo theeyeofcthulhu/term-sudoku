@@ -18,12 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <curses.h>
-#include <time.h>
-
 #include "main.h"
 
 extern bool sudoku_gen_visual;

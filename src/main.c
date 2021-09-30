@@ -294,12 +294,12 @@ int main(int argc, char **argv){
 				}
 				break;
 			}
+			// Reset controls
+			controls = controls_default;
 		}
 	// Not own_sudoku nor from_file: generate new sudoku
 	}else
 		new_sudoku(statusbar, filename, target_dir, t);
-
-	controls = controls_default;
 
 	draw();
 

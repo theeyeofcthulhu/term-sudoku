@@ -26,6 +26,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <pwd.h>
 #include <stdbool.h>
+#include <dirent.h>
+#include <signal.h>
+#include <time.h>
 
 #include "util.h"
 #include "sudoku.h"
