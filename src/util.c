@@ -31,11 +31,12 @@ void finish(int sig){
 	exit(0);
 }
 
+// Takes the same parameters as printf and exits ncurses as well as the application
 void finish_with_err_msg(char* msg, ...){
 	endwin();
 
+	// Send '...'-args to vprintf
 	va_list format;
-
 	va_start(format, msg);
 	vprintf(msg, format);
 	va_end(format);

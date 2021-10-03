@@ -42,6 +42,10 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
+    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
+	signal(SIGINT, finish);
+	signal(SIGSEGV, finish);
+
 	controls = controls_default;
 
 	// Handle command line input with getopt
@@ -241,6 +245,7 @@ int main(int argc, char **argv){
 						"1-9 - insert numbers\n"
 						"x or 0 - delete numbers\n"
 						"done - d\n"
+						"go to position - g\n"
 						"quit - q\n";
 		controls = custom_sudoku_controls;
 		// Draw with new controls
@@ -273,6 +278,9 @@ int main(int argc, char **argv){
 
 				sprintf(statusbar, "Sudoku entered");
 				done = true;
+				break;
+			case 'g':
+				input_go_to();
 				break;
 			case 'q':
 				if(!status_bar_confirmation()) break;
@@ -370,39 +378,8 @@ int main(int argc, char **argv){
 				draw();
 				break;
 			case 'g':
-			{
-				char* statusbar_backup = malloc(STR_LEN * sizeof(char));
-				strcpy(statusbar_backup, statusbar);
-
-				int move_to[2] = {0, 0};
-
-				sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-				draw();
-
-				bool abort = false;
-
-				for(int i = 0; i < 2; i++){
-					char c_pos = getch();
-					move_to[i] = strtol(&c_pos, NULL, 10);
-					if(move_to[i] <= 0 || move_to[i] > 9){
-						sprintf(statusbar, "%s", statusbar_backup);
-						free(statusbar_backup);
-						draw();
-						abort = true;
-						break;
-					}
-
-					sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-					draw();
-				}
-
-				if(abort) break;
-
-				move_cursor_to(move_to[1] - 1, move_to[0] - 1);
-
-				free(statusbar_backup);
+				input_go_to();
 				break;
-			}
 			// Exit; ask for confirmation
 			case 'q':
 				if(!status_bar_confirmation()) break;
@@ -441,4 +418,32 @@ int main(int argc, char **argv){
 				break;
 		}
 	}
+}
+
+// Ask for position (getch()) and go there
+void input_go_to() {
+	char* statusbar_backup = malloc(STR_LEN * sizeof(char));
+	strcpy(statusbar_backup, statusbar);
+
+	int move_to[2] = {0, 0};
+
+	sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+	draw();
+
+	for(int i = 0; i < 2; i++){
+		char c_pos = getch();
+		move_to[i] = strtol(&c_pos, NULL, 10);
+		if(move_to[i] <= 0 || move_to[i] > 9){
+			sprintf(statusbar, "%s", statusbar_backup);
+			free(statusbar_backup);
+			draw();
+			return;
+		}
+
+		sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+		draw();
+	}
+	move_cursor_to(move_to[0] - 1, move_to[1] - 1);
+
+	free(statusbar_backup);
 }

@@ -24,9 +24,6 @@ struct cursor cursor;
 
 // curses init logic
 void init_ncurses(){
-    // on interrupt and segfault (Ctrl+c) exit (call finish)
-	signal(SIGINT, finish);
-	signal(SIGSEGV, finish);
     // init
 	initscr();
     // return key doesn't become newline
@@ -46,10 +43,7 @@ void init_ncurses(){
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 }
 
-/*
-** Draws everything.
-** Controls are variable, the sudokus are global variables.
-*/
+// Draws everything
 void draw(){
 	erase();
 	if(!render_small_mode)
@@ -70,9 +64,11 @@ void generate_visually(char* sudoku_to_display){
 	usleep(VISUAL_SLEEP);
 }
 
+// Draws the 'skeleton' of the sudoku:
+// Number indicators on the sides, borders for large and small mode,
+// different colors for indicating which is a block border
 void draw_border(){
 	if(!render_small_mode){
-		// Offset for counting in seperators when drawing numbers
 		for(int y = 0; y < LINE_LEN + 1; y++){
 			// On every third vertical line, add colored seperator
 			if(y % 3 == 0)
@@ -93,13 +89,14 @@ void draw_border(){
 				mvaddch(i + PUZZLE_OFFSET, (x * 4) + PUZZLE_OFFSET, '|');
 			}
 		}
-		// Add horizontal seperators that overlay for indicating cube borders
+		// Add horizontal seperators that overlay the others for indicating cube borders
 		attron(COLOR_PAIR(3));
 		for(int i = 0; i < (LINE_LEN * 3) + 10; i++){
 			mvaddch((LINE_LEN * 3) + (3 * 3) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 			mvaddch((LINE_LEN * 2) + (3 * 2) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 			mvaddch((LINE_LEN * 1) + (3 * 1) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 		}
+		// Draw number indicators on the side
 		int local_off = 0;
 		for(int i = 0; i < LINE_LEN; i++){
 			if(i % 3 == 0)
@@ -111,6 +108,7 @@ void draw_border(){
 			free(to_string);
 		}
 	}else{
+		// Draw borders for small mode
 		for(int x = 0; x < 4; x++){
 			for(int i = 0; i < LINE_LEN + 4; i++)
 				mvaddch(i + PUZZLE_OFFSET, x * 4 + PUZZLE_OFFSET, '|');
@@ -119,6 +117,7 @@ void draw_border(){
 			for(int i = 0; i < LINE_LEN + 4; i++)
 				mvaddch(y * 4 + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 		}
+		// Draw number indicators on the side
 		int local_off = 0;
 		attron(COLOR_PAIR(3));
 		for(int i = 0; i < LINE_LEN; i++){
@@ -133,8 +132,7 @@ void draw_border(){
 	}
 }
 
-// Write changed values back to file
-// Read Sudoku to screen, adding seperators between the blocks for visuals
+// Read Sudoku to screen, respecting borders, etc.
 void read_sudoku(char* sudoku, int color_mode){
 	if(!render_small_mode){
 		// Offset for counting in seperators when drawing numbers
@@ -182,6 +180,7 @@ void read_sudoku(char* sudoku, int color_mode){
 	}
 }
 
+// Read the notes (nine switches for every cell) onto the screen
 void read_notes(){
 	attron(COLOR_PAIR(3));
 	for(int i = 0; i < SUDOKU_LEN; i++){
@@ -191,7 +190,6 @@ void read_notes(){
 				mvaddch(((i / LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j / (LINE_LEN / 3)), ((i % LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j % (LINE_LEN / 3)), j + 0x31);
 		}
 	}
-	attron(COLOR_PAIR(1));
 }
 
 // Move cursor but don't get into the seperators
