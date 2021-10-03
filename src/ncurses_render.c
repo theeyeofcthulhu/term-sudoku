@@ -122,7 +122,7 @@ void draw_border(){
 		for(int i = 0; i < LINE_LEN; i++){
 			if(i % 3 == 0)
 				local_off++;
-			char* to_string = malloc(sizeof(char));
+			char* to_string = malloc(2 * sizeof(char));
 			sprintf(to_string, "%d", i + 1);
 			mvaddstr(i * 4 + PUZZLE_OFFSET + 2, 0, to_string);
 			mvaddstr(0, i * 4 + PUZZLE_OFFSET + 2, to_string);
