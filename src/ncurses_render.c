@@ -49,9 +49,30 @@ void draw(){
 	if(!render_small_mode)
 		read_notes(notes);
 	draw_sudokus(sudoku_str, user_nums);
-	int string_off_set = render_small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : (LINE_LEN + 3) * 3 + 2 + PUZZLE_OFFSET;
-	mvaddstr(string_off_set, 0, statusbar);
-	mvaddstr(string_off_set + 2, 0, controls);
+
+	int string_y = render_small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : PUZZLE_OFFSET;
+	int string_x = render_small_mode ? 0 : (LINE_LEN * 4) + 3 + PUZZLE_OFFSET;
+
+	mvaddstr(string_y, string_x, statusbar);
+	string_y += 2;
+
+	// Split controls by '\n' characters to draw everything to the right of the puzzle when in big mode.
+	// This has to be done because when drawing the whole string, only the first line is transposed to string_x.
+	if(!render_small_mode){
+		char* control_copy = malloc((strlen(controls) + 1) * sizeof(char));
+		strcpy(control_copy, controls);
+
+		char* control_line;
+		// control_copy_ptr becomes NULL after first iteration since every call to strtok after the first one
+		// has to be with NULL as str.
+		for(char* control_copy_ptr = control_copy; (control_line = strtok(control_copy_ptr, "\n")) != NULL; control_copy_ptr = NULL, string_y++)
+			mvaddstr(string_y, string_x, control_line);
+
+		free(control_copy);
+	}else
+		mvaddstr(string_y, string_x, controls);
+
+
 	move_cursor(cursor);
 }
 
