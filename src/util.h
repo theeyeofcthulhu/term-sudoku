@@ -24,7 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 extern bool util_ask_confirmation;
 
 void finish(int sig);
-void finish_with_err_msg(char* msg);
+void finish_with_err_msg(char* msg, ...);
 void listfiles(char* target_dir, char* items[], int* iterator);
-bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes);
+bool savestate(char* filename);
 bool status_bar_confirmation();

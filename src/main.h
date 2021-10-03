@@ -29,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <dirent.h>
 #include <signal.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "util.h"
 #include "sudoku.h"

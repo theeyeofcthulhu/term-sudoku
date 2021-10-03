@@ -31,9 +31,15 @@ void finish(int sig){
 	exit(0);
 }
 
-void finish_with_err_msg(char* msg){
+void finish_with_err_msg(char* msg, ...){
 	endwin();
-	printf("%s", msg);
+
+	va_list format;
+
+	va_start(format, msg);
+	vprintf(msg, format);
+	va_end(format);
+
 	exit(1);
 }
 
@@ -49,7 +55,7 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 	diretory_object = opendir(target_dir);
 	if(diretory_object){
 		while((dir = readdir(diretory_object)) != NULL){
-			if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)){
+			if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) && strlen(dir->d_name) < STR_LEN){
 				char* new_item = malloc(STR_LEN * sizeof(char));
 				strcpy(new_item, dir->d_name);
 				items[*iterator] = new_item;
@@ -57,15 +63,12 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 			}
 		}
 		closedir(diretory_object);
-	}else{
-		char* err_message = malloc(STR_LEN * sizeof(char));
-		sprintf(err_message, "Directory '%s' could not be opened or does not exist\n", target_dir);
-		finish_with_err_msg(err_message);
-	}
+	}else
+		finish_with_err_msg("Directory '%s' could not be opened or does not exist\n", target_dir);
 }
 
 // Write sudoku_str, user_nums and notes to file
-bool savestate(char* filename, char* sudoku_str, char* user_nums, int* notes){
+bool savestate(char* filename){
 	FILE* savestate = fopen(filename, "w");
 
 	if(savestate == NULL)

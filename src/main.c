@@ -75,7 +75,7 @@ int main(int argc, char **argv){
 				sudoku_attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
-			if(strlen(optarg) > STR_LEN)
+			if(strlen(optarg) >= STR_LEN)
 				finish_with_err_msg("Directory name too long!\n");
 			custom_dir = malloc(STR_LEN * sizeof(char));
 			strcpy(custom_dir, optarg);
@@ -221,11 +221,8 @@ int main(int argc, char **argv){
 
 			// Read Sudoku from given file
 			FILE* input_file = fopen(filename, "r");
-			if(input_file == NULL){
-				char* err_message = malloc(STR_LEN * sizeof(char));
-				sprintf(err_message, "Error accessing file '%s'\n", filename);
-				finish_with_err_msg(err_message);
-			}
+			if(input_file == NULL)
+				finish_with_err_msg("Error accessing file '%s'\n", filename);
 
 			// Scan in the first two lines which are the puzzle and the entered user_nums
 			fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
@@ -330,11 +327,8 @@ int main(int argc, char **argv){
 				break;
 			// Save file and handle errors
 			case 's':
-				if(!savestate(filename, sudoku_str, user_nums, notes)){
-					char* err_message = malloc(STR_LEN * sizeof(char));
-					sprintf(err_message, "Error saving file '%s'\n", filename);
-					finish_with_err_msg(err_message);
-				}
+				if(!savestate(filename))
+					finish_with_err_msg("Error saving file '%s'\n", filename);
 				else
 					sprintf(statusbar, "%s", "Saved");
 
