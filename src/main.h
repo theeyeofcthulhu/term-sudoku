@@ -41,3 +41,4 @@ extern char* controls;
 #define ATTEMPTS_DEFAULT 5
 #define VISUAL_SLEEP 10000
 #define STR_LEN 80
+#define PUZZLE_OFFSET 1

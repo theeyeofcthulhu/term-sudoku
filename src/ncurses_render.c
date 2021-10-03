@@ -55,7 +55,7 @@ void draw(){
 	if(!render_small_mode)
 		read_notes(notes);
 	draw_sudokus(sudoku_str, user_nums);
-	int string_off_set = render_small_mode ? LINE_LEN + 5 : (LINE_LEN + 3) * 3 + 2;
+	int string_off_set = render_small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : (LINE_LEN + 3) * 3 + 2 + PUZZLE_OFFSET;
 	mvaddstr(string_off_set, 0, statusbar);
 	mvaddstr(string_off_set + 2, 0, controls);
 	move_cursor(cursor);
@@ -70,35 +70,81 @@ void generate_visually(char* sudoku_to_display){
 	usleep(VISUAL_SLEEP);
 }
 
+void draw_border(){
+	if(!render_small_mode){
+		// Offset for counting in seperators when drawing numbers
+		for(int y = 0; y < LINE_LEN + 1; y++){
+			// On every third vertical line, add colored seperator
+			if(y % 3 == 0)
+				attron(COLOR_PAIR(3));
+			else
+				attron(COLOR_PAIR(1));
+			for(int i = 0; i < (LINE_LEN * 3) + LINE_LEN + 1; i++){
+				mvaddch((y * 4) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
+			}
+		}
+		for(int x = 0; x < LINE_LEN + 1; x++){
+			// On every third character, add a pipe
+			if(x % 3 == 0)
+				attron(COLOR_PAIR(3));
+			else
+				attron(COLOR_PAIR(1));
+			for(int i = 1; i < LINE_LEN * 3 + LINE_LEN; i++){
+				mvaddch(i + PUZZLE_OFFSET, (x * 4) + PUZZLE_OFFSET, '|');
+			}
+		}
+		// Add horizontal seperators that overlay for indicating cube borders
+		attron(COLOR_PAIR(3));
+		for(int i = 0; i < (LINE_LEN * 3) + 10; i++){
+			mvaddch((LINE_LEN * 3) + (3 * 3) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
+			mvaddch((LINE_LEN * 2) + (3 * 2) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
+			mvaddch((LINE_LEN * 1) + (3 * 1) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
+		}
+		attron(COLOR_PAIR(1));
+		int local_PUZZLE_OFFSET = 0;
+		for(int i = 0; i < LINE_LEN; i++){
+			if(i % 3 == 0)
+				local_PUZZLE_OFFSET++;
+			char* to_string = malloc(sizeof(char));
+			sprintf(to_string, "%d", i + 1);
+			mvaddstr(i * 4 + PUZZLE_OFFSET + 2, 0, to_string);
+			mvaddstr(0, i * 4 + PUZZLE_OFFSET + 2, to_string);
+			free(to_string);
+		}
+	}else{
+		for(int x = 0; x < 4; x++){
+			for(int i = 0; i < LINE_LEN + 4; i++)
+				mvaddch(i + PUZZLE_OFFSET, x * 4 + PUZZLE_OFFSET, '|');
+		}
+		for(int y = 0; y < 4; y++){
+			for(int i = 0; i < LINE_LEN + 4; i++)
+				mvaddch(y * 4 + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
+		}
+		int local_PUZZLE_OFFSET = 0;
+		for(int i = 0; i < LINE_LEN; i++){
+			if(i % 3 == 0)
+				local_PUZZLE_OFFSET++;
+			char* to_string = malloc(sizeof(char));
+			sprintf(to_string, "%d", i + 1);
+			mvaddstr(i + PUZZLE_OFFSET + local_PUZZLE_OFFSET, 0, to_string);
+			mvaddstr(0, i + PUZZLE_OFFSET + local_PUZZLE_OFFSET, to_string);
+			free(to_string);
+		}
+	}
+}
+
 // Write changed values back to file
 // Read Sudoku to screen, adding seperators between the blocks for visuals
 void read_sudoku(char* sudoku, int color_mode){
 	if(!render_small_mode){
 		// Offset for counting in seperators when drawing numbers
-		int yoff = 0;
+		int yoff = PUZZLE_OFFSET;
 		for(int y = 0; y < LINE_LEN; y++){
-		// On every third vertical line, add seperator
-			// Add vertical seperators
-			//                 normal length    Account for vertical separators
-			for(int i = 0; i < (LINE_LEN * 3) + LINE_LEN + 1; i++){
-				if(y % 3 == 0)
-					attron(COLOR_PAIR(3));
-				mvaddch((y * 4), i, '-');
-				attron(COLOR_PAIR(color_mode));
-			}
 			// Increment offset
 			yoff++;
 			// Offset for horizontal seperators
-			int xoff = 0;
+			int xoff = PUZZLE_OFFSET;
 			for(int x = 0; x < LINE_LEN; x++){
-				// On every third character, add a pipe
-				// Move, print and increment       Account for separators in between blocks
-				for(int i = 1; i < LINE_LEN * 3 + LINE_LEN; i++){
-					if(x % 3 == 0)
-						attron(COLOR_PAIR(3));
-					mvaddch(i, (x * 4), '|');
-					attron(COLOR_PAIR(color_mode));
-				}
 				xoff++;
 				// Move into block
 				move((y * 3) + yoff + 1, (x * 3) + xoff + 1);
@@ -108,40 +154,21 @@ void read_sudoku(char* sudoku, int color_mode){
 				if(current_digit != '0')
 					addch(current_digit);
 			}
-			// Add vertical seperator add the end
-			for(int i = 1; i < LINE_LEN * 3 + 9; i++){
-				attron(COLOR_PAIR(3));
-				mvaddch(i, (LINE_LEN * 3) + 9, '|');
-				attron(COLOR_PAIR(color_mode));
-			}
 		}
-		// Add horizontal seperators that overlay for indicating cube borders
-		attron(COLOR_PAIR(3));
-		for(int i = 0; i < (LINE_LEN * 3) + 10; i++){
-			mvaddch((LINE_LEN * 3) + (3 * 3), i, '-');
-			mvaddch((LINE_LEN * 2) + (3 * 2), i, '-');
-			mvaddch((LINE_LEN * 1) + (3 * 1), i, '-');
-		}
-		attron(COLOR_PAIR(color_mode));
 	}else{
 		// Offset for horizontal seperators
-		int yoff = 0;
+		int yoff = PUZZLE_OFFSET;
 		for(int y = 0; y < LINE_LEN; y++){
 			// On every third vertical line, add seperator
 			if(y % 3 == 0){
-				// Add 4 vertical seperators
-				for(int i = 0; i < LINE_LEN + 4; i++)
-					mvaddch(y + yoff, i, '-');
 				// Increment offset
 				yoff++;
 			}
 			// Offset for horizontal seperators
-			int xoff = 0;
+			int xoff = PUZZLE_OFFSET;
 			for(int x = 0; x < LINE_LEN; x++){
-				// On every third character, add a pipe
 				if(x % 3 == 0){
-					// Move, print and increment
-					mvaddch(y + yoff, x + xoff++, '|');
+					xoff++;
 				}
 				// Move into number position
 				move(y + yoff, x + xoff);
@@ -151,12 +178,6 @@ void read_sudoku(char* sudoku, int color_mode){
 				if(current_digit != '0')
 					addch(current_digit);
 			}
-			// Add vertical seperator add the end
-			mvaddch(y + yoff, LINE_LEN + 3, '|');
-		}
-		// Add horizontal seperator add the end
-		for(int i = 0; i < LINE_LEN + 4; i++){
-			mvaddch(LINE_LEN + yoff, i, '-');
 		}
 	}
 }
@@ -167,23 +188,35 @@ void read_notes(){
 		for(int j = 0; j < LINE_LEN; j++){
 			if(notes[i * LINE_LEN + j])
 				// Move into position for the note                                                                        Number as a character
-				mvaddch(((i / LINE_LEN) * 4) + 1 + (j / (LINE_LEN / 3)), ((i % LINE_LEN) * 4) + 1 + (j % (LINE_LEN / 3)), j + 0x31);
+				mvaddch(((i / LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j / (LINE_LEN / 3)), ((i % LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j % (LINE_LEN / 3)), j + 0x31);
 		}
 	}
 	attron(COLOR_PAIR(1));
 }
 
 // Move cursor but don't get into the seperators
+void move_cursor_to(int x, int y){
+	cursor.x = x;
+	cursor.y = y;
+	if(render_small_mode)
+		move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET, cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
+	else
+		move((cursor.y * 4) + 2 + PUZZLE_OFFSET, (cursor.x * 4) + 2 + PUZZLE_OFFSET);
+}
+
+// Move cursor but don't get into the seperators
 void move_cursor(){
 	if(render_small_mode)
-		move(cursor.y + (cursor.y / 3) + 1, cursor.x + (cursor.x / 3) + 1);
+		move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET, cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
 	else
-		move((cursor.y * 4) + 2, (cursor.x * 4) + 2);
+		move((cursor.y * 4) + 2 + PUZZLE_OFFSET, (cursor.x * 4) + 2 + PUZZLE_OFFSET);
 }
 
 // Draw user numbers and the given sudoku in different colors
 // Draw the user numbers under the given sudoku so the latter can't be overwritten
 void draw_sudokus(){
+	draw_border();
+
 	attron(COLOR_PAIR(2));
 	read_sudoku(user_nums, 2);
 

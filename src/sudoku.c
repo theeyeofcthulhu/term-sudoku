@@ -357,7 +357,7 @@ bool check_validity(char* combined_solution){
 }
 
 // Generate a new sudoku for the user to solve
-void new_sudoku(char* statusbar, char* filename, char* target_dir, time_t t){
+void new_sudoku(char* filename, char* target_dir, time_t t){
 	// localtime struct for file name
 	struct tm tm = *localtime(&t);
 	char* filename_no_dir = malloc(STR_LEN * sizeof(char));

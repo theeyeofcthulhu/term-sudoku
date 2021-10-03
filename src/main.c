@@ -19,13 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "main.h"
 
 char* controls_default = "move - h, j, k and l\n"
-				 "1-9 - insert numbers\n"
-				 "x or 0 - delete numbers\n"
-				 "save - s\n"
-				 "check for errors - c\n"
-				 "solve sudoku - d\n"
-				 "notetaking mode - e\n"
-				 "quit - q\n";
+					"1-9 - insert numbers\n"
+					"x or 0 - delete numbers\n"
+					"save - s\n"
+					"check for errors - c\n"
+					"solve sudoku - d\n"
+					"notetaking mode - e\n"
+					"go to position - g\n"
+					"quit - q\n";
 char* controls;
 
 bool editing_notes = false;
@@ -74,6 +75,8 @@ int main(int argc, char **argv){
 				sudoku_attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
+			if(strlen(optarg) > STR_LEN)
+				finish_with_err_msg("Directory name too long!\n");
 			custom_dir = malloc(STR_LEN * sizeof(char));
 			strcpy(custom_dir, optarg);
 			break;
@@ -189,7 +192,7 @@ int main(int argc, char **argv){
 					finish(0);
 				// Create a new file instead of reading one
 				case 'n':
-					new_sudoku(statusbar, filename, target_dir, t);
+					new_sudoku(filename, target_dir, t);
 					new_file = true;
 					break;
 				default:
@@ -294,12 +297,12 @@ int main(int argc, char **argv){
 				}
 				break;
 			}
-			// Reset controls
-			controls = controls_default;
 		}
+		// Reset controls
+		controls = controls_default;
 	// Not own_sudoku nor from_file: generate new sudoku
 	}else
-		new_sudoku(statusbar, filename, target_dir, t);
+		new_sudoku(filename, target_dir, t);
 
 	draw();
 
@@ -372,6 +375,40 @@ int main(int argc, char **argv){
 
 				draw();
 				break;
+			case 'g':
+			{
+				char* statusbar_backup = malloc(STR_LEN * sizeof(char));
+				strcpy(statusbar_backup, statusbar);
+
+				int move_to[2] = {0, 0};
+
+				sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+				draw();
+
+				bool abort = false;
+
+				for(int i = 0; i < 2; i++){
+					char c_pos = getch();
+					move_to[i] = strtol(&c_pos, NULL, 10);
+					if(move_to[i] <= 0 || move_to[i] > 9){
+						sprintf(statusbar, "%s", statusbar_backup);
+						free(statusbar_backup);
+						draw();
+						abort = true;
+						break;
+					}
+
+					sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+					draw();
+				}
+
+				if(abort) break;
+
+				move_cursor_to(move_to[1] - 1, move_to[0] - 1);
+
+				free(statusbar_backup);
+				break;
+			}
 			// Exit; ask for confirmation
 			case 'q':
 				if(!status_bar_confirmation()) break;

@@ -35,6 +35,7 @@ extern struct cursor cursor;
 void init_ncurses();
 void draw();
 void read_sudoku(char* sudoku, int color_mode);
+void move_cursor_to(int x, int y);
 void move_cursor();
 void draw_sudokus();
 void read_notes();

@@ -38,4 +38,4 @@ void solve_count(char* sudoku_to_solve, int* count);
 bool solve_user_nums();
 void generate_visually(char* sudoku_to_display);
 bool check_validity(char* sudoku_to_check);
-void new_sudoku(char* statusbar, char* filename, char* target_dir, time_t t);
+void new_sudoku(char* filename, char* target_dir, time_t t);

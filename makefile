@@ -20,6 +20,9 @@ file: $(EXE)
 own: $(EXE)
 	bin/term-sudoku -e
 
+small: $(EXE)
+	bin/term-sudoku -sc
+
 install: $(EXE)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f $(ODIR)/term-sudoku $(DESTDIR)$(PREFIX)/bin

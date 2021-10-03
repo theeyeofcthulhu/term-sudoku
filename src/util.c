@@ -86,19 +86,19 @@ bool status_bar_confirmation(){
 	if(!util_ask_confirmation)
 		return true;
 
-	char* statusbar_backup = malloc(30 * sizeof(char));
+	char* statusbar_backup = malloc(STR_LEN * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
 	sprintf(statusbar, "%s", "Sure? y/n");
 	draw();
 
-	char confirm_quit = getch();
+	char confirm = getch();
 
 	sprintf(statusbar, "%s", statusbar_backup);
 	free(statusbar_backup);
 	draw();
 
-	if(confirm_quit != 'y')
+	if(confirm != 'y')
 		return false;
 
 	return true;
