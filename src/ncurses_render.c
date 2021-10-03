@@ -100,11 +100,10 @@ void draw_border(){
 			mvaddch((LINE_LEN * 2) + (3 * 2) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 			mvaddch((LINE_LEN * 1) + (3 * 1) + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 		}
-		attron(COLOR_PAIR(1));
-		int local_PUZZLE_OFFSET = 0;
+		int local_off = 0;
 		for(int i = 0; i < LINE_LEN; i++){
 			if(i % 3 == 0)
-				local_PUZZLE_OFFSET++;
+				local_off++;
 			char* to_string = malloc(sizeof(char));
 			sprintf(to_string, "%d", i + 1);
 			mvaddstr(i * 4 + PUZZLE_OFFSET + 2, 0, to_string);
@@ -120,14 +119,15 @@ void draw_border(){
 			for(int i = 0; i < LINE_LEN + 4; i++)
 				mvaddch(y * 4 + PUZZLE_OFFSET, i + PUZZLE_OFFSET, '-');
 		}
-		int local_PUZZLE_OFFSET = 0;
+		int local_off = 0;
+		attron(COLOR_PAIR(3));
 		for(int i = 0; i < LINE_LEN; i++){
 			if(i % 3 == 0)
-				local_PUZZLE_OFFSET++;
+				local_off++;
 			char* to_string = malloc(sizeof(char));
 			sprintf(to_string, "%d", i + 1);
-			mvaddstr(i + PUZZLE_OFFSET + local_PUZZLE_OFFSET, 0, to_string);
-			mvaddstr(0, i + PUZZLE_OFFSET + local_PUZZLE_OFFSET, to_string);
+			mvaddstr(i + PUZZLE_OFFSET + local_off, 0, to_string);
+			mvaddstr(0, i + PUZZLE_OFFSET + local_off, to_string);
 			free(to_string);
 		}
 	}
