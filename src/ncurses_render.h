@@ -39,3 +39,4 @@ void move_cursor_to(int x, int y);
 void move_cursor();
 void draw_sudokus();
 void read_notes();
+void draw_border();

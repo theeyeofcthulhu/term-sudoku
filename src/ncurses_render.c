@@ -80,6 +80,8 @@ void draw(){
 // For -v flag: show the generating process
 void generate_visually(char* sudoku_to_display){
 	erase();
+	draw_border();
+	attron(COLOR_PAIR(1));
 	read_sudoku(sudoku_to_display, 1);
 	refresh();
 	usleep(VISUAL_SLEEP);
