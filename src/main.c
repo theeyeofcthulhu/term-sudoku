@@ -158,6 +158,15 @@ int main(int argc, char **argv){
 }
 
 void own_sudoku_view(){
+	gen_file_name(target_dir, filename);
+
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		sudoku_str[i] = '0';
+		user_nums[i] = '0';
+	}
+	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
+		notes[i] = 0;
+
 	sprintf(statusbar, "%s", "Enter your sudoku");
 	// Controls displayed only in this view
 	char* custom_sudoku_controls = "move - h, j, k and l\n"
@@ -364,16 +373,17 @@ void fileview(){
 
 	bool chosen = false;
 	bool new_file = false;
+	bool own = false;
 	int position = 0;
 
 	char* temp_file;
 
 	// Choose file by moving cursor
-	while(!chosen && !new_file){
+	while(!chosen && !new_file && !own){
 
 		erase();
 
-		mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, quit - q");
+		mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q");
 
 		for(int j = 0; j < iterator; j++)
 			mvprintw(j + 2, 0, "  %s\n", items[j]);
@@ -393,6 +403,9 @@ void fileview(){
 				break;
 			case 'y':
 				chosen = true;
+				break;
+			case 'o':
+				own = true;
 				break;
 			// Delete selected file and re-read files
 			case 'd':
@@ -448,6 +461,8 @@ void fileview(){
 		fclose(input_file);
 
 		sprintf(statusbar, "%s", "File opened");
+	}else if(own){
+		own_sudoku_view();
 	}
 }
 

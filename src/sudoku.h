@@ -24,7 +24,7 @@ extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
 extern char* user_nums;
 extern char* sudoku_str;
-extern int notes[];
+extern int notes[SUDOKU_LEN * LINE_LEN + 1];
 
 struct sudoku_cell_props;
 

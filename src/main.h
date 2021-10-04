@@ -18,6 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
+#define LINE_LEN 9
+#define SUDOKU_LEN 81
+#define ATTEMPTS_DEFAULT 5
+#define VISUAL_SLEEP 10000
+#define STR_LEN 80
+#define PUZZLE_OFFSET 1
+
 #include <stdio.h>
 #include <curses.h>
 #include <stdlib.h>
@@ -36,13 +43,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "ncurses_render.h"
 
 extern char* controls;
-
-#define LINE_LEN 9
-#define SUDOKU_LEN 81
-#define ATTEMPTS_DEFAULT 5
-#define VISUAL_SLEEP 10000
-#define STR_LEN 80
-#define PUZZLE_OFFSET 1
 
 void input_go_to();
 void own_sudoku_view();

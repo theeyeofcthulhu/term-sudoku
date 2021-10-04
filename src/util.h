@@ -25,6 +25,7 @@ extern bool util_ask_confirmation;
 
 void finish(int sig);
 void finish_with_err_msg(char* msg, ...);
+void gen_file_name(char* target_dir, char* filename);
 void listfiles(char* target_dir, char* items[], int* iterator);
 bool savestate(char* filename);
 bool status_bar_confirmation();

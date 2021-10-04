@@ -358,22 +358,12 @@ bool check_validity(char* combined_solution){
 
 // Generate a new sudoku for the user to solve
 void new_sudoku(char* filename, char* target_dir){
-	time_t t = time(NULL);
-	// localtime struct for file name
-	struct tm tm = *localtime(&t);
-	char* filename_no_dir = malloc(STR_LEN * sizeof(char));
-	// Generate file name with the current time
-	sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
-
-	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
-
-	free(filename_no_dir);
+	gen_file_name(target_dir, filename);
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		sudoku_str[i] = '0';
 		user_nums[i] = '0';
 	}
-	// finish_with_err_msg("%s\n%s\n", sudoku_str, user_nums);
 	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
 		notes[i] = 0;
 

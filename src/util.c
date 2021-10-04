@@ -84,6 +84,19 @@ bool savestate(char* filename){
 	return true;
 }
 
+void gen_file_name(char* target_dir, char* filename){
+	time_t t = time(NULL);
+	// localtime struct for file name
+	struct tm tm = *localtime(&t);
+	char* filename_no_dir = malloc(STR_LEN * sizeof(char));
+	// Generate file name with the current time
+	sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+
+	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
+
+	free(filename_no_dir);
+}
+
 // Ask for confirmation by displaying
 bool status_bar_confirmation(){
 	// Return if the '-c' flag is set (the user does not want to be asked)
