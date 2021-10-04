@@ -177,10 +177,12 @@ void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight){
 				char current_digit = sudoku[y * LINE_LEN + x];
 				// Draw everything except zeros
 				if(current_digit != '0'){
-					if(current_digit == highlight)
+					if(current_digit == highlight){
 						attron(COLOR_PAIR(color_mode_highlight));
-					addch(current_digit);
-					attron(COLOR_PAIR(color_mode));
+						addch(current_digit);
+						attron(COLOR_PAIR(color_mode));
+					}else
+						addch(current_digit);
 				}
 			}
 		}
@@ -205,10 +207,12 @@ void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight){
 				char current_digit = sudoku[y * LINE_LEN + x];
 				// Draw everything except zeros
 				if(current_digit != '0'){
-					if(current_digit == highlight)
+					if(current_digit == highlight){
 						attron(COLOR_PAIR(color_mode_highlight));
-					addch(current_digit);
-					attron(COLOR_PAIR(color_mode));
+						addch(current_digit);
+						attron(COLOR_PAIR(color_mode));
+					}else
+						addch(current_digit);
 				}
 			}
 		}

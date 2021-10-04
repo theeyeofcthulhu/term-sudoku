@@ -383,19 +383,15 @@ int main(int argc, char **argv){
 				break;
 			case 'v':
 			{
-				char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
-				strcpy(statusbar_backup, statusbar);
-
 				sprintf(statusbar, "%s", "Highlight:");
 				draw();
 
 				highlight = getch();
-				if(highlight < 0x31 || highlight > 0x39)
-					sprintf(statusbar, "%s", statusbar_backup);
-				else
+				if(highlight < 0x31 || highlight > 0x39){
+					sprintf(statusbar, "%s", "Cancelled");
+				}else
 					sprintf(statusbar, "%s%c", "Highlight: ", highlight);
 
-				free(statusbar_backup);
 				draw();
 				break;
 			}
@@ -441,9 +437,6 @@ int main(int argc, char **argv){
 
 // Ask for position (getch()) and go there
 void input_go_to() {
-	char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
-	strcpy(statusbar_backup, statusbar);
-
 	int move_to[2] = {0, 0};
 
 	sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
@@ -453,8 +446,7 @@ void input_go_to() {
 		char c_pos = getch();
 		move_to[i] = strtol(&c_pos, NULL, 10);
 		if(move_to[i] <= 0 || move_to[i] > 9){
-			sprintf(statusbar, "%s", statusbar_backup);
-			free(statusbar_backup);
+			sprintf(statusbar, "%s", "Cancelled");
 			draw();
 			return;
 		}
@@ -463,6 +455,4 @@ void input_go_to() {
 		draw();
 	}
 	move_cursor_to(move_to[0] - 1, move_to[1] - 1);
-
-	free(statusbar_backup);
 }
