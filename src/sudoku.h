@@ -24,7 +24,7 @@ extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
 extern char* user_nums;
 extern char* sudoku_str;
-extern int* notes;
+extern int notes[];
 
 struct sudoku_cell_props;
 
@@ -38,4 +38,4 @@ void solve_count(char* sudoku_to_solve, int* count);
 bool solve_user_nums();
 void generate_visually(char* sudoku_to_display);
 bool check_validity(char* sudoku_to_check);
-void new_sudoku(char* filename, char* target_dir, time_t t);
+void new_sudoku(char* filename, char* target_dir);

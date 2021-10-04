@@ -23,7 +23,7 @@ int sudoku_attempts = ATTEMPTS_DEFAULT;
 
 char* user_nums;
 char* sudoku_str;
-int* notes;
+int notes[SUDOKU_LEN * LINE_LEN + 1];
 
 struct sudoku_cell_props{
 	char* vert_line;
@@ -43,7 +43,6 @@ void init_sudoku_strings(){
 	user_nums[SUDOKU_LEN] = '\0';
 
 	// Array for notetaking
-	notes = malloc((SUDOKU_LEN * LINE_LEN + 1) * sizeof(int));
 	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
 	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 }
@@ -91,9 +90,10 @@ void generate_sudoku(char* gen_sudoku){
 
 // Try and remove numbers until the solution is not unique
 void remove_nums(char* gen_sudoku){
+	int local_attempts = sudoku_attempts;
 	int length = strlen(gen_sudoku) + 1;
 	// Run down the attempts defined with '-n'
-	while(sudoku_attempts > 0){
+	while(local_attempts > 0){
 		// Get non-empty cell
 		int cell;
 		bool found_non_empty = false;
@@ -116,7 +116,7 @@ void remove_nums(char* gen_sudoku){
 			gen_sudoku[cell] = '0';
 		// Else, burn an attempt
 		else
-			sudoku_attempts--;
+			local_attempts--;
 	}
 }
 
@@ -357,7 +357,8 @@ bool check_validity(char* combined_solution){
 }
 
 // Generate a new sudoku for the user to solve
-void new_sudoku(char* filename, char* target_dir, time_t t){
+void new_sudoku(char* filename, char* target_dir){
+	time_t t = time(NULL);
 	// localtime struct for file name
 	struct tm tm = *localtime(&t);
 	char* filename_no_dir = malloc(STR_LEN * sizeof(char));
@@ -367,6 +368,14 @@ void new_sudoku(char* filename, char* target_dir, time_t t){
 	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
 
 	free(filename_no_dir);
+
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		sudoku_str[i] = '0';
+		user_nums[i] = '0';
+	}
+	// finish_with_err_msg("%s\n%s\n", sudoku_str, user_nums);
+	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
+		notes[i] = 0;
 
 	// Generate the sudoku
 	generate_sudoku(sudoku_str);

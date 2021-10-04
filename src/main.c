@@ -42,6 +42,8 @@ char* sharepath = ".local/share/term-sudoku";
 char* home_dir;
 char* target_dir;
 
+time_t t;
+
 int main(int argc, char **argv){
     // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
 	signal(SIGINT, finish);
@@ -101,12 +103,8 @@ int main(int argc, char **argv){
 		}
 	}
 
-	// Can't open from file and have user enter their own sudoku
-	if(from_file && own_sudoku)
-		finish_with_err_msg("Mutually exclusive flags given!\n");
-
 	// Initialize time and seed random
-	time_t t = time(NULL);
+	t = time(NULL);
 	srand((unsigned) time(&t));
 
 	// Set dir as $HOME/.local/share
@@ -141,183 +139,100 @@ int main(int argc, char **argv){
 
 	// List files and open selected file
 	if(from_file){
-		// Array of strings (in this case: directories)
-		char* items[STR_LEN];
-		// Holds the size of 'items'
-		int iterator = 0;
-
-		// Load files in directory into items
-		listfiles(target_dir, items, &iterator);
-
-		curs_set(0);
-
-		bool chosen = false;
-		bool new_file = false;
-		int position = 0;
-
-		char* temp_file;
-
-		// Choose file by moving cursor
-		while(!chosen && !new_file){
-
-			erase();
-
-			mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, quit - q");
-
-			for(int j = 0; j < iterator; j++)
-				mvprintw(j + 2, 0, "  %s\n", items[j]);
-
-			// Asteriks as cursor for file selection
-			mvaddch(position + 2, 0, '*');
-
-			char key_press = getch();
-
-			// Move on vim keys and bind to item size later
-			switch(key_press){
-				case 'j':
-					position += 1;
-					break;
-				case 'k':
-					position -= 1;
-					break;
-				case 'y':
-					chosen = true;
-					break;
-				// Delete selected file and re-read files
-				case 'd':
-					temp_file = malloc(STR_LEN * sizeof(char));
-					sprintf(temp_file, "%s/%s", target_dir, items[position]);
-					remove(temp_file);
-					for(int j = 0; j < iterator; j++)
-						free(items[j]);
-					listfiles(target_dir, items, &iterator);
-					free(temp_file);
-					break;
-				case 'q':
-					finish(0);
-				// Create a new file instead of reading one
-				case 'n':
-					new_sudoku(filename, target_dir, t);
-					new_file = true;
-					break;
-				default:
-					break;
-			}
-
-			if(iterator != 0){
-				// Wrap position according to list size
-				if(position >= iterator)
-					position = 0;
-				else if (position < 0)
-					position = iterator - 1;
-			// Keep position 0 if no files are available
-			}else
-				position = 0;
+		while(true){
+			fileview();
+			mainloop();
 		}
-
-		curs_set(1);
-
-		// Reading the file
-		if(chosen){
-			sprintf(filename, "%s/%s", target_dir, items[position]);
-
-			for(int j = 0; j < iterator; j++)
-				free(items[j]);
-
-			// Read Sudoku from given file
-			FILE* input_file = fopen(filename, "r");
-			if(input_file == NULL)
-				finish_with_err_msg("Error accessing file '%s'\n", filename);
-
-			// Scan in the first two lines which are the puzzle and the entered user_nums
-			fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
-			// Read in notes into the array
-			for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-				fscanf(input_file, "%1d", &notes[i]);
-			fclose(input_file);
-
-			sprintf(statusbar, "%s", "File opened");
-		}
+	}
 	// User enters a new sudoku
-	}else if(own_sudoku){
-		sprintf(statusbar, "%s", "Enter your sudoku");
-		// Controls displayed only in this view
-		char* custom_sudoku_controls = "move - h, j, k and l\n"
-						"1-9 - insert numbers\n"
-						"x or 0 - delete numbers\n"
-						"done - d\n"
-						"go to position - g\n"
-						"quit - q\n";
-		controls = custom_sudoku_controls;
-		// Draw with new controls
-		draw();
-		bool done = false;
-
-		// Loop for entering own sudoku
-		while(!done){
-			char key_press = getch();
-			// Move on vim keys and bind to field size
-			switch(key_press){
-			case 'h':
-				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-				move_cursor();
-				break;
-			case 'j':
-				cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
-				move_cursor();
-				break;
-			case 'k':
-				cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-				move_cursor();
-				break;
-			case 'l':
-				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
-				move_cursor();
-				break;
-			case 'd':
-				if(!status_bar_confirmation()) break;
-
-				sprintf(statusbar, "Sudoku entered");
-				done = true;
-				break;
-			case 'g':
-				input_go_to();
-				break;
-			case 'q':
-				if(!status_bar_confirmation()) break;
-
-				finish(0);
-			// Input numbers into the user sudoku field
-			default:
-				// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
-
-				// check for numbers
-				if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
-					sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
-					draw();
-				}
-				// check for x
-				else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
-					sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
-					draw();
-				}
-				break;
-			}
-		}
-		// Reset controls
-		controls = controls_default;
+	else if(own_sudoku){
+		own_sudoku_view();
+		mainloop();
+		finish(0);
 	// Not own_sudoku nor from_file: generate new sudoku
-	}else
-		new_sudoku(filename, target_dir, t);
+	}else{
+		new_sudoku(filename, target_dir);
+		mainloop();
+		finish(0);
+	}
+}
 
+void own_sudoku_view(){
+	sprintf(statusbar, "%s", "Enter your sudoku");
+	// Controls displayed only in this view
+	char* custom_sudoku_controls = "move - h, j, k and l\n"
+					"1-9 - insert numbers\n"
+					"x or 0 - delete numbers\n"
+					"done - d\n"
+					"go to position - g\n"
+					"quit - q\n";
+	controls = custom_sudoku_controls;
+	// Draw with new controls
 	draw();
+	bool done = false;
 
+	// Loop for entering own sudoku
+	while(!done){
+		char key_press = getch();
+		// Move on vim keys and bind to field size
+		switch(key_press){
+		case 'h':
+			cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
+			move_cursor();
+			break;
+		case 'j':
+			cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
+			move_cursor();
+			break;
+		case 'k':
+			cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
+			move_cursor();
+			break;
+		case 'l':
+			cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
+			move_cursor();
+			break;
+		case 'd':
+			if(!status_bar_confirmation()) break;
+
+			sprintf(statusbar, "Sudoku entered");
+			done = true;
+			break;
+		case 'g':
+			input_go_to();
+			break;
+		case 'q':
+			if(!status_bar_confirmation()) break;
+
+			finish(0);
+		// Input numbers into the user sudoku field
+		default:
+			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
+
+			// check for numbers
+			if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
+				sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
+				draw();
+			}
+			// check for x
+			else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
+				sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
+				draw();
+			}
+			break;
+		}
+	}
+	// Reset controls
+	controls = controls_default;
+}
+
+void mainloop(){
+	draw();
 	// Main loop: wait for keypress, then process it
 	while(true){
 		char key_press = getch();
 		switch(key_press){
 			// Move on vim keys and bind to field size
-			//
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
 				move_cursor();
@@ -399,7 +314,8 @@ int main(int argc, char **argv){
 			case 'q':
 				if(!status_bar_confirmation()) break;
 
-				finish(0);
+				highlight = 0;
+				return;
 			// Input numbers into the user sudoku field
 			default:
 				// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
@@ -435,8 +351,108 @@ int main(int argc, char **argv){
 	}
 }
 
+void fileview(){
+	// Array of strings (in this case: directories)
+	char* items[STR_LEN];
+	// Holds the size of 'items'
+	int iterator = 0;
+
+	// Load files in directory into items
+	listfiles(target_dir, items, &iterator);
+
+	curs_set(0);
+
+	bool chosen = false;
+	bool new_file = false;
+	int position = 0;
+
+	char* temp_file;
+
+	// Choose file by moving cursor
+	while(!chosen && !new_file){
+
+		erase();
+
+		mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, quit - q");
+
+		for(int j = 0; j < iterator; j++)
+			mvprintw(j + 2, 0, "  %s\n", items[j]);
+
+		// Asteriks as cursor for file selection
+		mvaddch(position + 2, 0, '*');
+
+		char key_press = getch();
+
+		// Move on vim keys and bind to item size later
+		switch(key_press){
+			case 'j':
+				position += 1;
+				break;
+			case 'k':
+				position -= 1;
+				break;
+			case 'y':
+				chosen = true;
+				break;
+			// Delete selected file and re-read files
+			case 'd':
+				temp_file = malloc(STR_LEN * sizeof(char));
+				sprintf(temp_file, "%s/%s", target_dir, items[position]);
+				remove(temp_file);
+				for(int j = 0; j < iterator; j++)
+					free(items[j]);
+				listfiles(target_dir, items, &iterator);
+				free(temp_file);
+				break;
+			case 'q':
+				finish(0);
+			// Create a new file instead of reading one
+			case 'n':
+				new_sudoku(filename, target_dir);
+				new_file = true;
+				break;
+			default:
+				break;
+		}
+
+		if(iterator != 0){
+			// Wrap position according to list size
+			if(position >= iterator)
+				position = 0;
+			else if (position < 0)
+				position = iterator - 1;
+		// Keep position 0 if no files are available
+		}else
+			position = 0;
+	}
+
+	curs_set(1);
+
+	// Reading the file
+	if(chosen){
+		sprintf(filename, "%s/%s", target_dir, items[position]);
+
+		for(int j = 0; j < iterator; j++)
+			free(items[j]);
+
+		// Read Sudoku from given file
+		FILE* input_file = fopen(filename, "r");
+		if(input_file == NULL)
+			finish_with_err_msg("Error accessing file '%s'\n", filename);
+
+		// Scan in the first two lines which are the puzzle and the entered user_nums
+		fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
+		// Read in notes into the array
+		for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
+			fscanf(input_file, "%1d", &notes[i]);
+		fclose(input_file);
+
+		sprintf(statusbar, "%s", "File opened");
+	}
+}
+
 // Ask for position (getch()) and go there
-void input_go_to() {
+void input_go_to(){
 	int move_to[2] = {0, 0};
 
 	sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);

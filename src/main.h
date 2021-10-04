@@ -45,3 +45,6 @@ extern char* controls;
 #define PUZZLE_OFFSET 1
 
 void input_go_to();
+void own_sudoku_view();
+void fileview();
+void mainloop();
