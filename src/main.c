@@ -26,6 +26,7 @@ char* controls_default = "move - h, j, k and l\n"
 					"solve sudoku - d\n"
 					"notetaking mode - e\n"
 					"go to position - g\n"
+					"highlight number - v\n"
 					"quit - q\n";
 char* controls;
 
@@ -380,6 +381,24 @@ int main(int argc, char **argv){
 			case 'g':
 				input_go_to();
 				break;
+			case 'v':
+			{
+				char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
+				strcpy(statusbar_backup, statusbar);
+
+				sprintf(statusbar, "%s", "Highlight:");
+				draw();
+
+				highlight = getch();
+				if(highlight < 0x31 || highlight > 0x39)
+					sprintf(statusbar, "%s", statusbar_backup);
+				else
+					sprintf(statusbar, "%s%c", "Highlight: ", highlight);
+
+				free(statusbar_backup);
+				draw();
+				break;
+			}
 			// Exit; ask for confirmation
 			case 'q':
 				if(!status_bar_confirmation()) break;
@@ -422,7 +441,7 @@ int main(int argc, char **argv){
 
 // Ask for position (getch()) and go there
 void input_go_to() {
-	char* statusbar_backup = malloc(STR_LEN * sizeof(char));
+	char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
 	int move_to[2] = {0, 0};

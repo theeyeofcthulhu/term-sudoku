@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern bool render_small_mode;
 extern char* statusbar;
+extern char highlight;
 
 struct cursor{
 	int y;
@@ -34,7 +35,7 @@ extern struct cursor cursor;
 
 void init_ncurses();
 void draw();
-void read_sudoku(char* sudoku, int color_mode);
+void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight);
 void move_cursor_to(int x, int y);
 void move_cursor();
 void draw_sudokus();

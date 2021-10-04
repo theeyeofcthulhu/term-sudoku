@@ -20,6 +20,7 @@ along with this program.  If not, see <https:// www.gnu.org/licenses/>.
 
 bool render_small_mode = false;
 char* statusbar;
+char highlight = '0';
 struct cursor cursor;
 
 // curses init logic
@@ -41,6 +42,8 @@ void init_ncurses(){
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_BLUE, COLOR_BLACK);
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(4, COLOR_BLACK, COLOR_WHITE);
+	init_pair(5, COLOR_BLACK, COLOR_BLUE);
 }
 
 // Draws everything
@@ -82,7 +85,7 @@ void generate_visually(char* sudoku_to_display){
 	erase();
 	draw_border();
 	attron(COLOR_PAIR(1));
-	read_sudoku(sudoku_to_display, 1);
+	read_sudoku(sudoku_to_display, 1, 4);
 	refresh();
 	usleep(VISUAL_SLEEP);
 }
@@ -156,7 +159,8 @@ void draw_border(){
 }
 
 // Read Sudoku to screen, respecting borders, etc.
-void read_sudoku(char* sudoku, int color_mode){
+void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight){
+	attron(COLOR_PAIR(color_mode));
 	if(!render_small_mode){
 		// Offset for counting in seperators when drawing numbers
 		int yoff = PUZZLE_OFFSET;
@@ -172,8 +176,12 @@ void read_sudoku(char* sudoku, int color_mode){
 				// Get digit from input string
 				char current_digit = sudoku[y * LINE_LEN + x];
 				// Draw everything except zeros
-				if(current_digit != '0')
+				if(current_digit != '0'){
+					if(current_digit == highlight)
+						attron(COLOR_PAIR(color_mode_highlight));
 					addch(current_digit);
+					attron(COLOR_PAIR(color_mode));
+				}
 			}
 		}
 	}else{
@@ -196,8 +204,12 @@ void read_sudoku(char* sudoku, int color_mode){
 				// Get digit from input string
 				char current_digit = sudoku[y * LINE_LEN + x];
 				// Draw everything except zeros
-				if(current_digit != '0')
+				if(current_digit != '0'){
+					if(current_digit == highlight)
+						attron(COLOR_PAIR(color_mode_highlight));
 					addch(current_digit);
+					attron(COLOR_PAIR(color_mode));
+				}
 			}
 		}
 	}
@@ -238,9 +250,7 @@ void move_cursor(){
 void draw_sudokus(){
 	draw_border();
 
-	attron(COLOR_PAIR(2));
-	read_sudoku(user_nums, 2);
+	read_sudoku(user_nums, 2, 5);
 
-	attron(COLOR_PAIR(1));
-	read_sudoku(sudoku_str, 1);
+	read_sudoku(sudoku_str, 1, 4);
 }

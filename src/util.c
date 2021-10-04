@@ -90,7 +90,7 @@ bool status_bar_confirmation(){
 	if(!util_ask_confirmation)
 		return true;
 
-	char* statusbar_backup = malloc(STR_LEN * sizeof(char));
+	char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
 	strcpy(statusbar_backup, statusbar);
 
 	sprintf(statusbar, "%s", "Sure? y/n");
