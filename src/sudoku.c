@@ -355,20 +355,3 @@ bool check_validity(char* combined_solution){
 
 	return true;
 }
-
-// Generate a new sudoku for the user to solve
-void new_sudoku(char* filename, char* target_dir){
-	gen_file_name(target_dir, filename);
-
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		sudoku_str[i] = '0';
-		user_nums[i] = '0';
-	}
-	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
-		notes[i] = 0;
-
-	// Generate the sudoku
-	generate_sudoku(sudoku_str);
-
-	sprintf(statusbar, "%s", "Sudoku generated");
-}

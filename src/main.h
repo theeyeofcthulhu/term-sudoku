@@ -43,8 +43,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "ncurses_render.h"
 
 extern char* controls;
+extern char* target_dir;
+extern char* filename;
 
 void input_go_to();
 void own_sudoku_view();
 void fileview();
 void mainloop();
+void new_sudoku();

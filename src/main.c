@@ -82,10 +82,8 @@ int main(int argc, char **argv){
 				sudoku_attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
-			if(strlen(optarg) >= STR_LEN)
-				finish_with_err_msg("Directory name too long!\n");
 			custom_dir = malloc(STR_LEN * sizeof(char));
-			strcpy(custom_dir, optarg);
+			snprintf(custom_dir, STR_LEN, "%s", optarg);
 			break;
 		case 'f':
 			from_file = true;
@@ -104,8 +102,7 @@ int main(int argc, char **argv){
 	}
 
 	// Initialize time and seed random
-	t = time(NULL);
-	srand((unsigned) time(&t));
+	srand(time(NULL));
 
 	// Set dir as $HOME/.local/share
 	if(custom_dir == NULL){
@@ -113,7 +110,7 @@ int main(int argc, char **argv){
 		struct passwd *pw = getpwuid(getuid());
 		home_dir = pw->pw_dir;
 		// target is: $HOME/.local/share/term-sudoku
-		target_dir = malloc(STR_LEN * sizeof(char));
+		target_dir = malloc((strlen(home_dir) + strlen(sharepath) + 2) * sizeof(char));
 		sprintf(target_dir, "%s/%s", home_dir, sharepath);
 		// Create (if not already created) the term-sudoku directory in the .local/share directory
 		struct stat st = { 0 };
@@ -151,14 +148,31 @@ int main(int argc, char **argv){
 		finish(0);
 	// Not own_sudoku nor from_file: generate new sudoku
 	}else{
-		new_sudoku(filename, target_dir);
+		new_sudoku();
 		mainloop();
 		finish(0);
 	}
 }
 
+// Generate a new sudoku for the user to solve
+void new_sudoku(){
+	gen_file_name();
+
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		sudoku_str[i] = '0';
+		user_nums[i] = '0';
+	}
+	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
+		notes[i] = 0;
+
+	// Generate the sudoku
+	generate_sudoku(sudoku_str);
+
+	sprintf(statusbar, "%s", "Sudoku generated");
+}
+
 void own_sudoku_view(){
-	gen_file_name(target_dir, filename);
+	gen_file_name();
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		sudoku_str[i] = '0';
@@ -182,21 +196,25 @@ void own_sudoku_view(){
 
 	// Loop for entering own sudoku
 	while(!done){
-		char key_press = getch();
+		int key_press = getch();
 		// Move on vim keys and bind to field size
 		switch(key_press){
+		case KEY_LEFT:
 		case 'h':
 			cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
 			move_cursor();
 			break;
+		case KEY_DOWN:
 		case 'j':
 			cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
 			move_cursor();
 			break;
+		case KEY_UP:
 		case 'k':
 			cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
 			move_cursor();
 			break;
+		case KEY_RIGHT:
 		case 'l':
 			cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
 			move_cursor();
@@ -235,32 +253,39 @@ void own_sudoku_view(){
 	controls = controls_default;
 }
 
+/*
+** Draws the sudoku and processes input relating to modifying the sudoku, changing something about the rendering or moving the cursor
+*/
 void mainloop(){
 	draw();
 	// Main loop: wait for keypress, then process it
 	while(true){
-		char key_press = getch();
+		int key_press = getch();
 		switch(key_press){
 			// Move on vim keys and bind to field size
+			case KEY_LEFT:
 			case 'h':
 				cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
 				move_cursor();
 				break;
+			case KEY_DOWN:
 			case 'j':
 				cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
 				move_cursor();
 				break;
+			case KEY_UP:
 			case 'k':
 				cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
 				move_cursor();
 				break;
+			case KEY_RIGHT:
 			case 'l':
 				cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
 				move_cursor();
 				break;
 			// Save file and handle errors
 			case 's':
-				if(!savestate(filename))
+				if(!savestate())
 					finish_with_err_msg("Error saving file '%s'\n", filename);
 				else
 					sprintf(statusbar, "%s", "Saved");
@@ -271,7 +296,7 @@ void mainloop(){
 			// Check for errors and write result to statusbar
 			case 'c':
 			{
-				char* combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
+				char* combined_solution = malloc((SUDOKU_LEN + 1) * sizeof(char));
 				for(int i = 0; i < SUDOKU_LEN; i++)
 					combined_solution[i] = sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
 
@@ -378,12 +403,14 @@ void fileview(){
 
 	char* temp_file;
 
+	char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
+
 	// Choose file by moving cursor
 	while(!chosen && !new_file && !own){
 
 		erase();
 
-		mvprintw(0, 0, "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q");
+		mvprintw(0, 0, file_view_controls);
 
 		for(int j = 0; j < iterator; j++)
 			mvprintw(j + 2, 0, "  %s\n", items[j]);
@@ -391,13 +418,15 @@ void fileview(){
 		// Asteriks as cursor for file selection
 		mvaddch(position + 2, 0, '*');
 
-		char key_press = getch();
+		int key_press = getch();
 
 		// Move on vim keys and bind to item size later
 		switch(key_press){
+			case KEY_DOWN:
 			case 'j':
 				position += 1;
 				break;
+			case KEY_UP:
 			case 'k':
 				position -= 1;
 				break;
@@ -409,7 +438,7 @@ void fileview(){
 				break;
 			// Delete selected file and re-read files
 			case 'd':
-				temp_file = malloc(STR_LEN * sizeof(char));
+				temp_file = malloc((strlen(target_dir) + strlen(items[position]) + 2) * sizeof(char));
 				sprintf(temp_file, "%s/%s", target_dir, items[position]);
 				remove(temp_file);
 				for(int j = 0; j < iterator; j++)
@@ -421,7 +450,6 @@ void fileview(){
 				finish(0);
 			// Create a new file instead of reading one
 			case 'n':
-				new_sudoku(filename, target_dir);
 				new_file = true;
 				break;
 			default:
@@ -461,9 +489,10 @@ void fileview(){
 		fclose(input_file);
 
 		sprintf(statusbar, "%s", "File opened");
-	}else if(own){
+	}else if(own)
 		own_sudoku_view();
-	}
+	else if(new_file)
+		new_sudoku();
 }
 
 // Ask for position (getch()) and go there

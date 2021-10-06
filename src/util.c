@@ -57,7 +57,7 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 	if(diretory_object){
 		while((dir = readdir(diretory_object)) != NULL){
 			if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) && strlen(dir->d_name) < STR_LEN){
-				char* new_item = malloc(STR_LEN * sizeof(char));
+				char* new_item = malloc((strlen(dir->d_name) + 1) * sizeof(char));
 				strcpy(new_item, dir->d_name);
 				items[*iterator] = new_item;
 				*iterator += 1;
@@ -69,7 +69,7 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 }
 
 // Write sudoku_str, user_nums and notes to file
-bool savestate(char* filename){
+bool savestate(){
 	FILE* savestate = fopen(filename, "w");
 
 	if(savestate == NULL)
@@ -84,13 +84,13 @@ bool savestate(char* filename){
 	return true;
 }
 
-void gen_file_name(char* target_dir, char* filename){
+void gen_file_name(){
 	time_t t = time(NULL);
 	// localtime struct for file name
 	struct tm tm = *localtime(&t);
-	char* filename_no_dir = malloc(STR_LEN * sizeof(char));
+	char* filename_no_dir = malloc(27 * sizeof(char));
 	// Generate file name with the current time
-	sprintf(filename_no_dir, "%4d%02d%02d%02d%02d%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+	sprintf(filename_no_dir, "%4d-%02d-%02d-%02d-%02d-%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
 
 	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
 
