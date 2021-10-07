@@ -47,7 +47,7 @@ extern char* target_dir;
 extern char* filename;
 
 void input_go_to();
-void own_sudoku_view();
+bool own_sudoku_view();
 void fileview();
 void mainloop();
 void new_sudoku();

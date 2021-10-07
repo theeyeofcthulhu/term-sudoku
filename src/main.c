@@ -136,15 +136,13 @@ int main(int argc, char **argv){
 
 	// List files and open selected file
 	if(from_file){
-		while(true){
+		while(true)
 			fileview();
-			mainloop();
-		}
 	}
 	// User enters a new sudoku
 	else if(own_sudoku){
-		own_sudoku_view();
-		mainloop();
+		if(own_sudoku_view())
+			mainloop();
 		finish(0);
 	// Not own_sudoku nor from_file: generate new sudoku
 	}else{
@@ -171,7 +169,7 @@ void new_sudoku(){
 	sprintf(statusbar, "%s", "Sudoku generated");
 }
 
-void own_sudoku_view(){
+bool own_sudoku_view(){
 	gen_file_name();
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
@@ -193,9 +191,10 @@ void own_sudoku_view(){
 	// Draw with new controls
 	draw();
 	bool done = false;
+	bool quit = false;
 
 	// Loop for entering own sudoku
-	while(!done){
+	while(!done && !quit){
 		int key_press = getch();
 		// Move on vim keys and bind to field size
 		switch(key_press){
@@ -231,7 +230,7 @@ void own_sudoku_view(){
 		case 'q':
 			if(!status_bar_confirmation()) break;
 
-			finish(0);
+			quit = true;
 		// Input numbers into the user sudoku field
 		default:
 			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
@@ -251,6 +250,9 @@ void own_sudoku_view(){
 	}
 	// Reset controls
 	controls = controls_default;
+	if(quit)
+		return false;
+	return true;
 }
 
 /*
@@ -489,10 +491,16 @@ void fileview(){
 		fclose(input_file);
 
 		sprintf(statusbar, "%s", "File opened");
-	}else if(own)
-		own_sudoku_view();
-	else if(new_file)
+
+		mainloop();
+	}else if(own){
+		if(own_sudoku_view())
+			mainloop();
+	}
+	else if(new_file){
 		new_sudoku();
+		mainloop();
+	}
 }
 
 // Ask for position (getch()) and go there
