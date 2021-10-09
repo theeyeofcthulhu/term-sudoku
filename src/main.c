@@ -45,9 +45,6 @@ char* target_dir;
 time_t t;
 
 int main(int argc, char **argv){
-    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
-	signal(SIGINT, finish);
-	signal(SIGSEGV, finish);
 
 	controls = controls_default;
 
@@ -95,11 +92,14 @@ int main(int argc, char **argv){
 			render_small_mode = true;
 			break;
 		case '?':
-			return 1;
 		default:
 			return 1;
 		}
 	}
+
+    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
+	signal(SIGINT, finish);
+	signal(SIGSEGV, finish);
 
 	// Initialize time and seed random
 	srand(time(NULL));
@@ -134,10 +134,11 @@ int main(int argc, char **argv){
 	cursor.x = 0;
 	cursor.y = 0;
 
-	// List files and open selected file
+	// List files and open selected file or create a new file or enter your own sudoku
 	if(from_file){
-		while(true)
-			fileview();
+		// Run fileview() until it returns false
+		while(fileview());
+		finish(0);
 	}
 	// User enters a new sudoku
 	else if(own_sudoku){
@@ -150,6 +151,124 @@ int main(int argc, char **argv){
 		mainloop();
 		finish(0);
 	}
+}
+
+bool fileview(){
+	// Array of strings (in this case: directories)
+	char* items[STR_LEN];
+	// Holds the size of 'items'
+	int iterator = 0;
+
+	// Load files in directory into items
+	listfiles(target_dir, items, &iterator);
+
+	curs_set(0);
+
+	bool chosen = false;
+	bool new_file = false;
+	bool own = false;
+	int position = 0;
+
+	char* temp_file;
+
+	char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
+
+	// Choose file by moving cursor
+	while(!chosen && !new_file && !own){
+
+		erase();
+
+		mvprintw(0, 0, file_view_controls);
+
+		for(int j = 0; j < iterator; j++)
+			mvprintw(j + 2, 0, "  %s\n", items[j]);
+
+		// Asteriks as cursor for file selection
+		mvaddch(position + 2, 0, '*');
+
+		int key_press = getch();
+
+		// Move on vim keys and bind to item size later
+		switch(key_press){
+			case KEY_DOWN:
+			case 'j':
+				position += 1;
+				break;
+			case KEY_UP:
+			case 'k':
+				position -= 1;
+				break;
+			case 'y':
+				chosen = true;
+				break;
+			case 'o':
+				own = true;
+				break;
+			// Delete selected file and re-read files
+			case 'd':
+				temp_file = malloc((strlen(target_dir) + strlen(items[position]) + 2) * sizeof(char));
+				sprintf(temp_file, "%s/%s", target_dir, items[position]);
+				remove(temp_file);
+				for(int j = 0; j < iterator; j++)
+					free(items[j]);
+				listfiles(target_dir, items, &iterator);
+				free(temp_file);
+				break;
+			case 'q':
+				return false;
+			// Create a new file instead of reading one
+			case 'n':
+				new_file = true;
+				break;
+			default:
+				break;
+		}
+
+		if(iterator != 0){
+			// Wrap position according to list size
+			if(position >= iterator)
+				position = 0;
+			else if (position < 0)
+				position = iterator - 1;
+		// Keep position 0 if no files are available
+		}else
+			position = 0;
+	}
+
+	curs_set(1);
+
+	// Reading the file
+	if(chosen){
+		sprintf(filename, "%s/%s", target_dir, items[position]);
+
+		for(int j = 0; j < iterator; j++)
+			free(items[j]);
+
+		// Read Sudoku from given file
+		FILE* input_file = fopen(filename, "r");
+		if(input_file == NULL)
+			finish_with_err_msg("Error accessing file '%s'\n", filename);
+
+		// Scan in the first two lines which are the puzzle and the entered user_nums
+		fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
+		// Read in notes into the array
+		for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
+			fscanf(input_file, "%1d", &notes[i]);
+		fclose(input_file);
+
+		sprintf(statusbar, "%s", "File opened");
+
+		mainloop();
+	}else if(own){
+		if(own_sudoku_view())
+			mainloop();
+	}
+	else if(new_file){
+		new_sudoku();
+		mainloop();
+	}
+
+	return true;
 }
 
 // Generate a new sudoku for the user to solve
@@ -384,122 +503,6 @@ void mainloop(){
 				}
 				break;
 		}
-	}
-}
-
-void fileview(){
-	// Array of strings (in this case: directories)
-	char* items[STR_LEN];
-	// Holds the size of 'items'
-	int iterator = 0;
-
-	// Load files in directory into items
-	listfiles(target_dir, items, &iterator);
-
-	curs_set(0);
-
-	bool chosen = false;
-	bool new_file = false;
-	bool own = false;
-	int position = 0;
-
-	char* temp_file;
-
-	char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
-
-	// Choose file by moving cursor
-	while(!chosen && !new_file && !own){
-
-		erase();
-
-		mvprintw(0, 0, file_view_controls);
-
-		for(int j = 0; j < iterator; j++)
-			mvprintw(j + 2, 0, "  %s\n", items[j]);
-
-		// Asteriks as cursor for file selection
-		mvaddch(position + 2, 0, '*');
-
-		int key_press = getch();
-
-		// Move on vim keys and bind to item size later
-		switch(key_press){
-			case KEY_DOWN:
-			case 'j':
-				position += 1;
-				break;
-			case KEY_UP:
-			case 'k':
-				position -= 1;
-				break;
-			case 'y':
-				chosen = true;
-				break;
-			case 'o':
-				own = true;
-				break;
-			// Delete selected file and re-read files
-			case 'd':
-				temp_file = malloc((strlen(target_dir) + strlen(items[position]) + 2) * sizeof(char));
-				sprintf(temp_file, "%s/%s", target_dir, items[position]);
-				remove(temp_file);
-				for(int j = 0; j < iterator; j++)
-					free(items[j]);
-				listfiles(target_dir, items, &iterator);
-				free(temp_file);
-				break;
-			case 'q':
-				finish(0);
-			// Create a new file instead of reading one
-			case 'n':
-				new_file = true;
-				break;
-			default:
-				break;
-		}
-
-		if(iterator != 0){
-			// Wrap position according to list size
-			if(position >= iterator)
-				position = 0;
-			else if (position < 0)
-				position = iterator - 1;
-		// Keep position 0 if no files are available
-		}else
-			position = 0;
-	}
-
-	curs_set(1);
-
-	// Reading the file
-	if(chosen){
-		sprintf(filename, "%s/%s", target_dir, items[position]);
-
-		for(int j = 0; j < iterator; j++)
-			free(items[j]);
-
-		// Read Sudoku from given file
-		FILE* input_file = fopen(filename, "r");
-		if(input_file == NULL)
-			finish_with_err_msg("Error accessing file '%s'\n", filename);
-
-		// Scan in the first two lines which are the puzzle and the entered user_nums
-		fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
-		// Read in notes into the array
-		for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-			fscanf(input_file, "%1d", &notes[i]);
-		fclose(input_file);
-
-		sprintf(statusbar, "%s", "File opened");
-
-		mainloop();
-	}else if(own){
-		if(own_sudoku_view())
-			mainloop();
-	}
-	else if(new_file){
-		new_sudoku();
-		mainloop();
 	}
 }
 

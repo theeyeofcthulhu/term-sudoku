@@ -31,6 +31,31 @@ struct sudoku_cell_props{
 	char* block;
 };
 
+// Given a cell in a sudoku get the according row, column and block
+// Don't forget to free
+struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
+	struct sudoku_cell_props result;
+
+	result.vert_line = malloc(LINE_LEN * sizeof(char));
+	memcpy(result.vert_line, sudoku_str + (LINE_LEN * (cell / LINE_LEN)), LINE_LEN * sizeof(char));
+
+	result.hor_line = malloc(LINE_LEN * sizeof(char));
+	for(int y = 0; y < LINE_LEN; y++)
+		result.hor_line[y] = sudoku_str[y * LINE_LEN + (cell % LINE_LEN)];
+
+	result.block = malloc(LINE_LEN * sizeof(char));
+	for(int j = 0; j < LINE_LEN; j++)
+		result.block[j] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN + (((cell % LINE_LEN) / 3) * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
+
+	return result;
+}
+
+void free_cell_props(struct sudoku_cell_props cell){
+	free(cell.vert_line);
+	free(cell.hor_line);
+	free(cell.block);
+}
+
 void init_sudoku_strings(){
 	// Array for sudoku
 	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
@@ -269,31 +294,6 @@ void solve_count(char* sudoku_to_solve, int* count){
 	return;
 }
 
-// Given a cell in a sudoku get the according row, column and block
-// Don't forget to free
-struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
-	struct sudoku_cell_props result;
-
-	result.vert_line = malloc(LINE_LEN * sizeof(char));
-	memcpy(result.vert_line, sudoku_str + (LINE_LEN * (cell / LINE_LEN)), LINE_LEN * sizeof(char));
-
-	result.hor_line = malloc(LINE_LEN * sizeof(char));
-	for(int y = 0; y < LINE_LEN; y++)
-		result.hor_line[y] = sudoku_str[y * LINE_LEN + (cell % LINE_LEN)];
-
-	result.block = malloc(LINE_LEN * sizeof(char));
-	for(int j = 0; j < LINE_LEN; j++)
-		result.block[j] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN + (((cell % LINE_LEN) / 3) * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
-
-	return result;
-}
-
-void free_cell_props(struct sudoku_cell_props cell){
-	free(cell.vert_line);
-	free(cell.hor_line);
-	free(cell.block);
-}
-
 // Check for errors in the solved sudoku
 bool check_validity(char* combined_solution){
 	// Check for errors in vertical lines
@@ -325,7 +325,8 @@ bool check_validity(char* combined_solution){
 				if(hor_line[j] == hor_line[i] && j != i){
 					free(hor_line);
 					return false;
-				}	}
+				}
+			}
 		}
 		free(hor_line);
 	}

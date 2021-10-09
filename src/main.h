@@ -48,6 +48,6 @@ extern char* filename;
 
 void input_go_to();
 bool own_sudoku_view();
-void fileview();
+bool fileview();
 void mainloop();
 void new_sudoku();
