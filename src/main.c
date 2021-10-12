@@ -42,8 +42,6 @@ char* sharepath = ".local/share/term-sudoku";
 char* home_dir;
 char* target_dir;
 
-time_t t;
-
 int main(int argc, char **argv){
 
 	controls = controls_default;
@@ -130,17 +128,14 @@ int main(int argc, char **argv){
 	// ncurses intializer functions
 	init_ncurses();
 
-	// initialize cursor struct, responsible for storing x and y coordinations for the cursor
-	cursor.x = 0;
-	cursor.y = 0;
-
 	// List files and open selected file or create a new file or enter your own sudoku
 	if(from_file){
-		// Run fileview() until it returns false
+		// Run fileview()(which runs new_sudoku(), fileview() and mainloop() depending on input)
+		// until it returns false
 		while(fileview());
 		finish(0);
 	}
-	// User enters a new sudoku
+	// User enters a new sudoku and edits it in mainloop() if successful
 	else if(own_sudoku){
 		if(own_sudoku_view())
 			mainloop();
@@ -289,6 +284,8 @@ void new_sudoku(){
 }
 
 bool own_sudoku_view(){
+	cursor.x = cursor.y = 0;
+
 	gen_file_name();
 
 	for(int i = 0; i < SUDOKU_LEN; i++){
@@ -378,6 +375,8 @@ bool own_sudoku_view(){
 ** Draws the sudoku and processes input relating to modifying the sudoku, changing something about the rendering or moving the cursor
 */
 void mainloop(){
+	cursor.x = cursor.y = 0;
+
 	draw();
 	// Main loop: wait for keypress, then process it
 	while(true){
