@@ -10,12 +10,12 @@ term-sudoku - play sudoku in the terminal
 \f[B]term-sudoku\f[R] [-hsvfce] [-d DIR] [-n NUMBER]
 .SH DESCRIPTION
 .PP
-\f[B]term-sudoku\f[R] is a terminal application written in C with the
+\f[B]term-sudoku\f[R] is a terminal application written in C utilizing the
 ncurses library to play the game of sudoku.
 It currently supports generating sudokus with unique solutions, entering
 your own sudokus, taking notes of possibles numbers for each square,
-saving the current state of the game and checking if the solution is
-correct.
+saving the current state of the game, checking if the solution is
+correct and more.
 .SH OPTIONS
 .TP
 \f[B]-h\f[R]
@@ -35,7 +35,7 @@ otherwise fast fast generation process visible.
 .TP
 \f[B]-f\f[R]
 Select a file from the \[ti]/.local/share/term-sudoku (or any directory
-specified with the -d flag) directory to load a savegame.
+specified with the \f[B]-d\f[R] flag) directory to load a savegame.
 .TP
 \f[B]-e\f[R]
 Show an empty field which can be filled out with puzzle.
@@ -56,7 +56,7 @@ solution (default: 5).
 Changes the difficulty of the puzzle.
 .SH CONTROLS
 .TP
-\f[B]h, j, k and l\f[R]
+\f[B]h, j, k and l or arrow keys\f[R]
 Move the cursor.
 .TP
 \f[B]1-9\f[R]
@@ -66,11 +66,13 @@ Insert numbers in normal mode, toggle numbers in note mode.
 Remove numbers in normal mode.
 .TP
 \f[B]s\f[R]
-Save the current state of the game to a file which will be labeled
-[timestamp].sudoku.
+Save the current state of the game to a file either in the default or
+specified (with \f[B]-d\f[R]) directory which will be labeled
+[Year]-[Month]-[Day]-[Hour]-[Minute]-[Second].sudoku.
 .TP
 \f[B]c\f[R]
-Check if the solution is filled out correctly.
+Check if the solution is filled out and if that was done correctly.
+Displays output to statusbar.
 .TP
 \f[B]d\f[R]
 Solve the sudoku.
@@ -80,15 +82,18 @@ Asks for confirmation.
 Toggle note mode.
 Here you toggle the numbers 1-9 on each square note which numbers could
 fit.
-Disabled in small mode.
+Disabled in small mode which does not offer the required space to display
+these notes.
 .TP
 \f[B]g\f[R]
 Enter x and y value.
-Cursor jumps to this position.
+Cursor jumps to this position. If any character which is not in the numbers
+one to nine is entered, this cancels and normal input resumes.
 .TP
 \f[B]v\f[R]
-Highlight all occurrences of the given number.
-Any character outside of 1-9 causes nothing to be highlighted.
+Highlight all occurrences of the afterwards typed number.
+Any character outside of 1-9 causes nothing to be highlighted and
+cancels the input.
 .TP
 \f[B]q\f[R]
 Quit.

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "main.h"
 
-char* controls_default = "move - h, j, k and l\n"
+char* controls_default = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
 					"x or 0 - delete numbers\n"
 					"save - s\n"
@@ -300,7 +300,7 @@ bool own_sudoku_view(){
 
 	sprintf(statusbar, "%s", "Enter your sudoku");
 	// Controls displayed only in this view
-	char* custom_sudoku_controls = "move - h, j, k and l\n"
+	char* custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
 					"x or 0 - delete numbers\n"
 					"done - d\n"
