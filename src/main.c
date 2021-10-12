@@ -288,6 +288,7 @@ bool own_sudoku_view(){
 
 	gen_file_name();
 
+	// Clear sudoku arrays
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		sudoku_str[i] = '0';
 		user_nums[i] = '0';
@@ -347,6 +348,7 @@ bool own_sudoku_view(){
 			if(!status_bar_confirmation()) break;
 
 			quit = true;
+			break;
 		// Input numbers into the user sudoku field
 		default:
 			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
