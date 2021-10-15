@@ -1,13 +1,15 @@
 CC = gcc
 LIBS = -lncurses
 
-SRC = src/*.c
-INCLUDE = src/*.h
+SRC = $(addprefix src/,main.c util.c sudoku.c ncurses_render.c)
+INCLUDE = $(addprefix src/,main.h util.h sudoku.h ncurses_render.h)
+OBJ = $(addprefix bin/,$(notdir src/$(SRC:.c=.o)))
 EXE = $(ODIR)/term-sudoku
 ODIR = bin
+SRCDIR = src
 
-PREFIX = /usr/local
-MANPATH = $(PREFIX)/share/man
+DESTDIR = /usr
+MANPATH = $(DESTDIR)/share/man
 
 build: $(EXE)
 
@@ -39,5 +41,8 @@ clean:
 $(ODIR):
 	mkdir -p $@
 
-$(EXE): $(SRC) $(INCLUDE) | $(ODIR)
-	$(CC) -o $@ $(SRC) $(LIBS)
+$(EXE): $(OBJ) $(INCLUDE) | $(ODIR)
+	$(CC) -o $@ $(OBJ) $(LIBS)
+
+$(ODIR)/%.o: $(SRCDIR)/%.c* $(SRCDIR)/%.h* | $(ODIR)
+	$(CC) -o $@ -c $<
