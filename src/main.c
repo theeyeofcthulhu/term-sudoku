@@ -64,7 +64,6 @@ char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
-
 	controls = controls_default;
 
 	// Handle command line input with getopt
@@ -73,7 +72,7 @@ int main(int argc, char **argv){
 		switch (flag){
 		case 'h':
 			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
-					"usage: term-sudoku [-hsvfe] [-d DIR] [-n NUMBER]\n\n"
+					"usage: term-sudoku [-hsvfec] [-d DIR] [-n NUMBER]\n\n"
 					"flags:\n"
 					"-h: display this information\n"
 					"-s: small mode (disables noting numbers)\n"
