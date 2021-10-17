@@ -119,7 +119,7 @@ int main(int argc, char **argv){
 	signal(SIGINT, finish);
 	signal(SIGSEGV, finish);
 
-	// Initialize time and seed random
+	// Seed random
 	srand(time(NULL));
 
 	// Set dir as $HOME/.local/share
@@ -132,8 +132,11 @@ int main(int argc, char **argv){
 		sprintf(target_dir, "%s/%s", home_dir, sharepath);
 		// Create (if not already created) the term-sudoku directory in the .local/share directory
 		struct stat st = { 0 };
-		if(stat(target_dir, &st) == -1)
-			mkdir(target_dir, 0777);
+		if(stat(target_dir, &st) == -1){
+			if((mkdir(target_dir, 0777)) == -1)
+				finish_with_err_msg("Failed to create directory: %s\n", target_dir);
+		}
+
 	// Use a custom directory specified in '-d'
 	}else
 		target_dir = custom_dir;
