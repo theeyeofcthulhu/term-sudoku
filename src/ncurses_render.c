@@ -18,10 +18,25 @@ along with this program.  If not, see <https:// www.gnu.org/licenses/>.
 
 #include "ncurses_render.h"
 
+#include "util.h"
+#include "sudoku.h"
+#include "main.h"
+
+#include <stdbool.h>
+#include <curses.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 bool render_small_mode = false;
 char* statusbar;
 char highlight = '0';
 struct cursor cursor;
+
+void draw_sudokus();
+void read_notes();
+void draw_border();
+void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight);
 
 // curses init logic
 void init_ncurses(){

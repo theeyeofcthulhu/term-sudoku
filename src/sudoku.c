@@ -18,12 +18,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "sudoku.h"
 
+#include "ncurses_render.h"
+#include "main.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <curses.h>
+#include <stdbool.h>
+
 bool sudoku_gen_visual = false;
 int sudoku_attempts = ATTEMPTS_DEFAULT;
 
 char* user_nums;
 char* sudoku_str;
 int notes[SUDOKU_LEN * LINE_LEN + 1];
+
+void solve_count(char* sudoku_to_solve, int* count);
+void remove_nums(char* gen_sudoku);
+bool solve(char* sudoku_str);
+struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
+void free_cell_props(struct sudoku_cell_props cell);
 
 struct sudoku_cell_props{
 	char* vert_line;
@@ -304,8 +318,9 @@ bool check_validity(char* combined_solution){
 
 		// Check each digit against the others and check for zeros
 		for(int j = 0; j < LINE_LEN; j++){
+			char current_digit = vert_line[j];
 			for(int k = 0; k < LINE_LEN; k++){
-				if(vert_line[k] == vert_line[j] && k != j || vert_line[j] == '0'){
+				if((vert_line[k] == current_digit && k != j) || vert_line[j] == '0'){
 					free(vert_line);
 					return false;
 				}	
@@ -322,7 +337,7 @@ bool check_validity(char* combined_solution){
 		for(int i = 0; i < LINE_LEN; i++){
 			char current_digit = hor_line[i];
 			for(int j = 0; j < LINE_LEN; j++){
-				if(hor_line[j] == hor_line[i] && j != i){
+				if(hor_line[j] == current_digit && j != i){
 					free(hor_line);
 					return false;
 				}
@@ -343,7 +358,7 @@ bool check_validity(char* combined_solution){
 			for(int i = 0; i < LINE_LEN; i++){
 				char current_digit = block[i];
 				for(int j = 0; j < LINE_LEN; j++){
-					if(block[j] == block[i] && j != i){
+					if(block[j] == current_digit && j != i){
 						free(block);
 						return false;
 					}	

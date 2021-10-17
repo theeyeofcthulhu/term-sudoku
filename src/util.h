@@ -18,8 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "ncurses_render.h"
-#include "main.h"
+#include <stdbool.h>
 
 extern bool util_ask_confirmation;
 

@@ -18,6 +18,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "main.h"
 
+#include "ncurses_render.h"
+#include "util.h"
+#include "sudoku.h"
+
+#include <stdbool.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <time.h>
+#include <pwd.h>
+#include <sys/stat.h>
+#include <curses.h>
+
+void input_go_to();
+bool own_sudoku_view();
+bool fileview();
+void mainloop();
+void new_sudoku();
+
 char* controls_default = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
 					"x or 0 - delete numbers\n"

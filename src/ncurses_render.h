@@ -18,9 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "util.h"
-#include "sudoku.h"
-#include "main.h"
+#include <stdbool.h>
 
 extern bool render_small_mode;
 extern char* statusbar;
@@ -35,9 +33,6 @@ extern struct cursor cursor;
 
 void init_ncurses();
 void draw();
-void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight);
 void move_cursor_to(int x, int y);
 void move_cursor();
-void draw_sudokus();
-void read_notes();
-void draw_border();
+void generate_visually(char* sudoku_to_display);

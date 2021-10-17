@@ -18,6 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "util.h"
 
+#include "main.h"
+#include "sudoku.h"
+#include "ncurses_render.h"
+
+#include <stdbool.h>
+#include <curses.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <string.h>
+#include <time.h>
+
 bool util_ask_confirmation = true;
 
 // Exit ncurses cleanly

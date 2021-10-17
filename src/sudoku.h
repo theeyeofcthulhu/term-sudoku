@@ -20,6 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "main.h"
 
+#include <stdbool.h>
+
 extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
 extern char* user_nums;
@@ -28,13 +30,7 @@ extern int notes[SUDOKU_LEN * LINE_LEN + 1];
 
 struct sudoku_cell_props;
 
-struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
 void init_sudoku_strings();
-void free_cell_props(struct sudoku_cell_props cell);
 void generate_sudoku(char* gen_sudoku);
-void remove_nums(char* gen_sudoku);
-bool solve(char* sudoku_str);
-void solve_count(char* sudoku_to_solve, int* count);
 bool solve_user_nums();
-void generate_visually(char* sudoku_to_display);
 bool check_validity(char* sudoku_to_check);

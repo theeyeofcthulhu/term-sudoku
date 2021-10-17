@@ -23,29 +23,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define STR_LEN 80
 #define PUZZLE_OFFSET 1
 
-#include <stdio.h>
-#include <curses.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <pwd.h>
 #include <stdbool.h>
-#include <dirent.h>
-#include <signal.h>
-#include <time.h>
-#include <stdarg.h>
-
-#include "util.h"
-#include "sudoku.h"
-#include "ncurses_render.h"
 
 extern char* controls;
 extern char* target_dir;
 extern char* filename;
-
-void input_go_to();
-bool own_sudoku_view();
-bool fileview();
-void mainloop();
-void new_sudoku();
