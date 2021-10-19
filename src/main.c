@@ -187,8 +187,6 @@ bool fileview(){
 	bool own = false;
 	int position = 0;
 
-	char* temp_file;
-
 	char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
 
 	// Choose file by moving cursor
@@ -225,14 +223,17 @@ bool fileview(){
 				break;
 			// Delete selected file and re-read files
 			case 'd':
-				temp_file = malloc((strlen(target_dir) + strlen(items[position]) + 2) * sizeof(char));
+			{
+				char* temp_file = malloc((strlen(target_dir) + strlen(items[position]) + 2) * sizeof(char));
 				sprintf(temp_file, "%s/%s", target_dir, items[position]);
-				remove(temp_file);
+				if(remove(temp_file) == -1)
+					finish_with_err_msg("Error: '%s' when trying to remove '%s'\n", strerror(errno), temp_file);
 				for(int j = 0; j < iterator; j++)
 					free(items[j]);
 				listfiles(target_dir, items, &iterator);
 				free(temp_file);
 				break;
+			}
 			case 'q':
 				return false;
 			// Create a new file instead of reading one
