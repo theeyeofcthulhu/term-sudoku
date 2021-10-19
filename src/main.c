@@ -432,7 +432,7 @@ void mainloop(){
 			// Save file and handle errors
 			case 's':
 				if(!savestate())
-					finish_with_err_msg("Error: '%s' when trying to save file '%s'\n", strerror(errno), filename);
+					sprintf(statusbar, "Error: '%s'\n", strerror(errno));
 				else
 					sprintf(statusbar, "%s", "Saved");
 
