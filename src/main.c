@@ -137,7 +137,6 @@ int main(int argc, char **argv){
 			if((mkdir(target_dir, 0777)) == -1)
 				finish_with_err_msg("Error: '%s' when trying to create directory '%s'\n", strerror(errno), target_dir);
 		}
-
 	// Use a custom directory specified in '-d'
 	}else
 		target_dir = custom_dir;
@@ -218,7 +217,8 @@ bool fileview(){
 				position -= 1;
 				break;
 			case 'y':
-				chosen = true;
+				if(iterator > 0)
+					chosen = true;
 				break;
 			case 'o':
 				own = true;
@@ -378,12 +378,12 @@ bool own_sudoku_view(){
 			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
 
 			// check for numbers
-			if(key_press >= 0x30 && key_press <= 0x39 && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
+			if(key_press >= '1' && key_press <= '9' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
 				sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
 				draw();
 			}
 			// check for x
-			else if(key_press == 'x' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
+			else if((key_press == 'x' || key_press == '0') && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
 				sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
 				draw();
 			}
@@ -468,7 +468,7 @@ void mainloop(){
 				if(render_small_mode)
 					break;
 				editing_notes = !editing_notes;
-				char* mode = editing_notes == 1 ? "Note" : "Normal";
+				char* mode = editing_notes ? "Note" : "Normal";
 				sprintf(statusbar, "%s %s", mode, "Mode");
 
 				draw();
@@ -482,7 +482,7 @@ void mainloop(){
 				draw();
 
 				highlight = getch();
-				if(highlight < 0x31 || highlight > 0x39){
+				if(highlight < '1' || highlight > '9'){
 					sprintf(statusbar, "%s", "Cancelled");
 				}else
 					sprintf(statusbar, "%s%c", "Highlight: ", highlight);
@@ -504,14 +504,14 @@ void mainloop(){
 				if(sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0'){
 					// Toggle the note fields (if in note mode)
 					if(editing_notes){
-						if(key_press > 0x30 && key_press <= 0x39){
+						if(key_press >= '1' && key_press <= '9'){
 							// Access cursor location in array and add key_press for appropriate number
-							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - 0x31)];
+							int* target = &notes[((cursor.y * LINE_LEN * LINE_LEN) + (cursor.x * LINE_LEN)) + (key_press - '1')];
 							*target = !*target;
 							draw();
 						}
 					// Check for numbers and place the number in user_nums
-					}else if(key_press >= 0x30 && key_press <= 0x39 && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){
+					}else if(key_press >= '1' && key_press <= '9' && user_nums[cursor.y * LINE_LEN + cursor.x] != key_press){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
 						// Clear notes off of target cell
 						for (int i = 0; i < LINE_LEN; i++) {
@@ -521,7 +521,7 @@ void mainloop(){
 						draw();
 					}
 					// Check for x and clear the number (same as pressing space in the above conditional)
-					else if(key_press == 'x' && user_nums[cursor.y * LINE_LEN + cursor.x] != '0'){
+					else if((key_press == 'x' || key_press == '0') && user_nums[cursor.y * LINE_LEN + cursor.x] != '0'){
 						user_nums[cursor.y * LINE_LEN + cursor.x] = '0';
 						draw();
 					}

@@ -104,7 +104,7 @@ void generate_sudoku(char* gen_sudoku){
 				// Math to get a pointer to the current cell in the according diagonal block
 				char* current_digit = &gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (j / 3)) + (j % 3)];
 				// Assign a random value between 1 and 9
-				*current_digit = 0x31 + rand() % 9;
+				*current_digit = '1' + rand() % 9;
 				// Check all digits up to 'j' cells into the block for duplicates
 				for(int k = 0; k < j; k++){
 					if(*current_digit == gen_sudoku[(i * 3) * LINE_LEN + (i * 3) + (LINE_LEN * (k / 3)) + (k % 3)])
@@ -178,7 +178,7 @@ bool solve_user_nums(){
 			struct sudoku_cell_props cell_props = get_cell_props(i, combined_solution);
 
 			// Try to assign a value to the cell at i
-			for(int j = 0x31; j <= 0x39; j++){
+			for(int j = '1'; j <= '9'; j++){
 				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
@@ -226,7 +226,7 @@ bool solve(char* sudoku_to_solve){
 			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
 
 			// Try to assign a value to the cell at i
-			for(int j = 0x31; j <= 0x39; j++){
+			for(int j = '1'; j <= '9'; j++){
 				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
@@ -274,7 +274,7 @@ void solve_count(char* sudoku_to_solve, int* count){
 			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
 
 			// Try to assign a value to the cell at i
-			for(int j = 0x31; j <= 0x39; j++){
+			for(int j = '1'; j <= '9'; j++){
 				bool used = false;
 				for(int k = 0; k < LINE_LEN; k++){
 					// Check if the value is valid
@@ -352,7 +352,6 @@ bool check_validity(char* combined_solution){
 			char* block = malloc(LINE_LEN * sizeof(char));
 			for(int i = 0; i < LINE_LEN; i++)
 				block[i] = combined_solution[(y * 3) * LINE_LEN + (x * 3) + (LINE_LEN * (i / 3)) + (i % 3)];
-		
 
 			// Check each digit against the others
 			for(int i = 0; i < LINE_LEN; i++){

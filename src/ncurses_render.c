@@ -239,8 +239,8 @@ void read_notes(){
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		for(int j = 0; j < LINE_LEN; j++){
 			if(notes[i * LINE_LEN + j])
-				// Move into position for the note                                                                        Number as a character
-				mvaddch(((i / LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j / (LINE_LEN / 3)), ((i % LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j % (LINE_LEN / 3)), j + 0x31);
+				// Move into position for the note
+				mvaddch(((i / LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j / (LINE_LEN / 3)), ((i % LINE_LEN) * 4) + 1 + PUZZLE_OFFSET + (j % (LINE_LEN / 3)), j + '1');
 		}
 	}
 }
