@@ -29,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <dirent.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 bool util_ask_confirmation = true;
 
@@ -77,7 +78,7 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 		}
 		closedir(diretory_object);
 	}else
-		finish_with_err_msg("Directory '%s' could not be opened or does not exist\n", target_dir);
+		finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n", strerror(errno), target_dir);
 }
 
 // Write sudoku_str, user_nums and notes to file

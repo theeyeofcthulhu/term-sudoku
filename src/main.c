@@ -32,6 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <pwd.h>
 #include <sys/stat.h>
 #include <curses.h>
+#include <errno.h>
 
 void input_go_to();
 bool own_sudoku_view();
@@ -60,7 +61,6 @@ char* custom_dir;
 
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
-char* home_dir;
 char* target_dir;
 
 int main(int argc, char **argv){
@@ -124,6 +124,7 @@ int main(int argc, char **argv){
 
 	// Set dir as $HOME/.local/share
 	if(custom_dir == NULL){
+		char* home_dir;
 		// Get user home directory
 		struct passwd *pw = getpwuid(getuid());
 		home_dir = pw->pw_dir;
@@ -134,7 +135,7 @@ int main(int argc, char **argv){
 		struct stat st = { 0 };
 		if(stat(target_dir, &st) == -1){
 			if((mkdir(target_dir, 0777)) == -1)
-				finish_with_err_msg("Failed to create directory: %s\n", target_dir);
+				finish_with_err_msg("Error: '%s' when trying to create directory '%s'\n", strerror(errno), target_dir);
 		}
 
 	// Use a custom directory specified in '-d'
@@ -265,7 +266,7 @@ bool fileview(){
 		// Read Sudoku from given file
 		FILE* input_file = fopen(filename, "r");
 		if(input_file == NULL)
-			finish_with_err_msg("Error accessing file '%s'\n", filename);
+			finish_with_err_msg("Error: '%s' when trying to access file '%s'\n", strerror(errno), filename);
 
 		// Scan in the first two lines which are the puzzle and the entered user_nums
 		fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
@@ -431,7 +432,7 @@ void mainloop(){
 			// Save file and handle errors
 			case 's':
 				if(!savestate())
-					finish_with_err_msg("Error saving file '%s'\n", filename);
+					finish_with_err_msg("Error: '%s' when trying to save file '%s'\n", strerror(errno), filename);
 				else
 					sprintf(statusbar, "%s", "Saved");
 
