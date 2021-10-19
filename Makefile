@@ -9,8 +9,8 @@ EXE = $(BINDIR)/term-sudoku
 BINDIR = bin
 SRCDIR = src
 
-DESTDIR = /usr/local
-MANPATH = $(DESTDIR)/share/man
+PREFIX = /usr/local
+MANPATH = $(PREFIX)/share/man
 
 .PHONY: all
 all: $(EXE)
@@ -33,14 +33,14 @@ small: $(EXE)
 
 .PHONY: install
 install: $(EXE)
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $(BINDIR)/term-sudoku $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(MANPATH)/man1
-	cp -f term-sudoku.1 $(DESTDIR)$(MANPATH)/man1/term-sudoku.1
+	mkdir -p $(PREFIX)/bin
+	cp -f $(BINDIR)/term-sudoku $(PREFIX)/bin
+	mkdir -p $(MANPATH)/man1
+	cp -f term-sudoku.1 $(MANPATH)/man1/term-sudoku.1
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/term-sudoku
+	rm -f $(PREFIX)/bin/term-sudoku
 	rm -f $(MANPATH)/man1/term-sudoku.1
 
 .PHONY: clean
