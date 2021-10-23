@@ -26,7 +26,7 @@ extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
 extern char user_nums[SUDOKU_LEN];
 extern char sudoku_str[SUDOKU_LEN];
-extern int notes[SUDOKU_LEN * LINE_LEN + 1];
+extern int notes[SUDOKU_LEN * LINE_LEN];
 
 void init_sudoku_strings();
 void generate_sudoku(char* gen_sudoku);

@@ -37,7 +37,7 @@ int sudoku_attempts = ATTEMPTS_DEFAULT;
 
 char user_nums[SUDOKU_LEN];
 char sudoku_str[SUDOKU_LEN];
-int notes[SUDOKU_LEN * LINE_LEN + 1];
+int notes[SUDOKU_LEN * LINE_LEN];
 
 void solve_count(char* sudoku_to_solve, int* count);
 void remove_nums(char* gen_sudoku);
