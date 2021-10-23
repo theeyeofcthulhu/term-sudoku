@@ -24,12 +24,12 @@ extern bool render_small_mode;
 extern char* statusbar;
 extern char highlight;
 
-struct cursor{
+typedef struct{
 	int y;
 	int x;
-};
+}Cursor;
 
-extern struct cursor cursor;
+extern Cursor cursor;
 
 void init_ncurses();
 void draw();

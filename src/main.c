@@ -34,11 +34,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <curses.h>
 #include <errno.h>
 
+void new_sudoku();
 void input_go_to();
 bool own_sudoku_view();
 bool fileview();
 void mainloop();
-void new_sudoku();
 
 char* controls_default = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
@@ -63,112 +63,133 @@ char* filename;
 char* sharepath = ".local/share/term-sudoku";
 char* target_dir;
 
-int main(int argc, char **argv){
-	controls = controls_default;
+// Generate a new sudoku for the user to solve
+void new_sudoku(){
+	gen_file_name();
 
-	// Handle command line input with getopt
-	int flag;
-	while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1){
-		switch (flag){
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		sudoku_str[i] = '0';
+		user_nums[i] = '0';
+	}
+	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
+		notes[i] = 0;
+
+	// Generate the sudoku
+	generate_sudoku(sudoku_str);
+
+	sprintf(statusbar, "%s", "Sudoku generated");
+}
+
+// Ask for position (getch()) and go there
+void input_go_to(){
+	int move_to[2] = {0, 0};
+
+	sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+	draw();
+
+	for(int i = 0; i < 2; i++){
+		char c_pos = getch();
+		move_to[i] = strtol(&c_pos, NULL, 10);
+		if(move_to[i] <= 0 || move_to[i] > 9){
+			sprintf(statusbar, "%s", "Cancelled");
+			draw();
+			return;
+		}
+
+		sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+		draw();
+	}
+	move_cursor_to(move_to[0] - 1, move_to[1] - 1);
+}
+
+bool own_sudoku_view(){
+	cursor.x = cursor.y = 0;
+
+	gen_file_name();
+
+	// Clear sudoku arrays
+	for(int i = 0; i < SUDOKU_LEN; i++){
+		sudoku_str[i] = '0';
+		user_nums[i] = '0';
+	}
+	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
+		notes[i] = 0;
+
+	sprintf(statusbar, "%s", "Enter your sudoku");
+	// Controls displayed only in this view
+	char* custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
+					"1-9 - insert numbers\n"
+					"x or 0 - delete numbers\n"
+					"done - d\n"
+					"go to position - g\n"
+					"quit - q\n";
+	controls = custom_sudoku_controls;
+	// Draw with new controls
+	draw();
+	bool done = false;
+	bool quit = false;
+
+	// Loop for entering own sudoku
+	while(!done && !quit){
+		int key_press = getch();
+		// Move on vim keys and bind to field size
+		switch(key_press){
+		case KEY_LEFT:
 		case 'h':
-			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
-					"usage: term-sudoku [-hsvfec] [-d DIR] [-n NUMBER]\n\n"
-					"flags:\n"
-					"-h: display this information\n"
-					"-s: small mode (disables noting numbers)\n"
-					"-v: generate the sudoku visually\n"
-					"-f: list save games and use a selected file as the sudoku\n"
-					"-e: enter your own sudoku\n"
-					"-c: do not ask for confirmation when trying to exit, solve, etc.\n"
-					"-d: DIR: specify directory where save files are and should be saved\n"
-					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
-					"controls:\n"
-					"%s", ATTEMPTS_DEFAULT, controls);
-			return 0;
-		case 'v':
-			sudoku_gen_visual = true;
+			cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
+			move_cursor();
 			break;
-		case 'e':
-			own_sudoku = true;
+		case KEY_DOWN:
+		case 'j':
+			cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
+			move_cursor();
 			break;
-		case 'n':
-			sudoku_attempts = strtol(optarg, NULL, 10);
-			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
-				sudoku_attempts = ATTEMPTS_DEFAULT;
+		case KEY_UP:
+		case 'k':
+			cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
+			move_cursor();
+			break;
+		case KEY_RIGHT:
+		case 'l':
+			cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
+			move_cursor();
 			break;
 		case 'd':
-			custom_dir = malloc(STR_LEN * sizeof(char));
-			snprintf(custom_dir, STR_LEN, "%s", optarg);
+			if(!status_bar_confirmation()) break;
+
+			sprintf(statusbar, "Sudoku entered");
+			done = true;
 			break;
-		case 'f':
-			from_file = true;
+		case 'g':
+			input_go_to();
 			break;
-		case 'c':
-			util_ask_confirmation = false;
+		case 'q':
+			if(!status_bar_confirmation()) break;
+
+			quit = true;
 			break;
-		case 's':
-			render_small_mode = true;
-			break;
-		case '?':
+		// Input numbers into the user sudoku field
 		default:
-			return 1;
+			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
+
+			// check for numbers
+			if(key_press >= '1' && key_press <= '9' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
+				sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
+				draw();
+			}
+			// check for x
+			else if((key_press == 'x' || key_press == '0') && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
+				sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
+				draw();
+			}
+			break;
 		}
 	}
-
-    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
-	signal(SIGINT, finish);
-	signal(SIGSEGV, finish);
-
-	// Seed random
-	srand(time(NULL));
-
-	// Set dir as $HOME/.local/share
-	if(custom_dir == NULL){
-		char* home_dir;
-		// Get user home directory
-		struct passwd *pw = getpwuid(getuid());
-		home_dir = pw->pw_dir;
-		// target is: $HOME/.local/share/term-sudoku
-		target_dir = malloc((strlen(home_dir) + strlen(sharepath) + 2) * sizeof(char));
-		sprintf(target_dir, "%s/%s", home_dir, sharepath);
-		// Create (if not already created) the term-sudoku directory in the .local/share directory
-		struct stat st = { 0 };
-		if(stat(target_dir, &st) == -1){
-			if((mkdir(target_dir, 0777)) == -1)
-				finish_with_err_msg("Error: '%s' when trying to create directory '%s'\n", strerror(errno), target_dir);
-		}
-	// Use a custom directory specified in '-d'
-	}else
-		target_dir = custom_dir;
-
-	// Allocate strings, fill with zeros and null-terminate
-	init_sudoku_strings();
-
-	// String for the statusbar and filename
-	statusbar = malloc(STR_LEN * sizeof(char));
-	filename = malloc(STR_LEN * sizeof(char));
-
-	// ncurses intializer functions
-	init_ncurses();
-
-	// List files and open selected file or create a new file or enter your own sudoku
-	if(from_file){
-		// Run fileview()(which runs new_sudoku(), fileview() and mainloop() depending on input)
-		// until it returns false
-		while(fileview());
-		finish(0);
-	}
-	// User enters a new sudoku and edits it in mainloop() if successful
-	else if(own_sudoku){
-		if(own_sudoku_view())
-			mainloop();
-		finish(0);
-	// Not own_sudoku nor from_file: generate new sudoku
-	}else{
-		new_sudoku();
-		mainloop();
-		finish(0);
-	}
+	// Reset controls
+	controls = controls_default;
+	if(quit)
+		return false;
+	return true;
 }
 
 bool fileview(){
@@ -288,113 +309,6 @@ bool fileview(){
 		mainloop();
 	}
 
-	return true;
-}
-
-// Generate a new sudoku for the user to solve
-void new_sudoku(){
-	gen_file_name();
-
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		sudoku_str[i] = '0';
-		user_nums[i] = '0';
-	}
-	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
-		notes[i] = 0;
-
-	// Generate the sudoku
-	generate_sudoku(sudoku_str);
-
-	sprintf(statusbar, "%s", "Sudoku generated");
-}
-
-bool own_sudoku_view(){
-	cursor.x = cursor.y = 0;
-
-	gen_file_name();
-
-	// Clear sudoku arrays
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		sudoku_str[i] = '0';
-		user_nums[i] = '0';
-	}
-	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
-		notes[i] = 0;
-
-	sprintf(statusbar, "%s", "Enter your sudoku");
-	// Controls displayed only in this view
-	char* custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
-					"1-9 - insert numbers\n"
-					"x or 0 - delete numbers\n"
-					"done - d\n"
-					"go to position - g\n"
-					"quit - q\n";
-	controls = custom_sudoku_controls;
-	// Draw with new controls
-	draw();
-	bool done = false;
-	bool quit = false;
-
-	// Loop for entering own sudoku
-	while(!done && !quit){
-		int key_press = getch();
-		// Move on vim keys and bind to field size
-		switch(key_press){
-		case KEY_LEFT:
-		case 'h':
-			cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-			move_cursor();
-			break;
-		case KEY_DOWN:
-		case 'j':
-			cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1 ;
-			move_cursor();
-			break;
-		case KEY_UP:
-		case 'k':
-			cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-			move_cursor();
-			break;
-		case KEY_RIGHT:
-		case 'l':
-			cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1 ;
-			move_cursor();
-			break;
-		case 'd':
-			if(!status_bar_confirmation()) break;
-
-			sprintf(statusbar, "Sudoku entered");
-			done = true;
-			break;
-		case 'g':
-			input_go_to();
-			break;
-		case 'q':
-			if(!status_bar_confirmation()) break;
-
-			quit = true;
-			break;
-		// Input numbers into the user sudoku field
-		default:
-			// Check if the key is a number (not zero) in aasci chars or 'x' and if the cursor is not an a field filled by the puzzle
-
-			// check for numbers
-			if(key_press >= '1' && key_press <= '9' && sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press){
-				sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
-				draw();
-			}
-			// check for x
-			else if((key_press == 'x' || key_press == '0') && sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0'){
-				sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
-				draw();
-			}
-			break;
-		}
-	}
-	// Reset controls
-	controls = controls_default;
-	if(quit)
-		return false;
 	return true;
 }
 
@@ -532,24 +446,110 @@ void mainloop(){
 	}
 }
 
-// Ask for position (getch()) and go there
-void input_go_to(){
-	int move_to[2] = {0, 0};
+int main(int argc, char **argv){
+	controls = controls_default;
 
-	sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-	draw();
-
-	for(int i = 0; i < 2; i++){
-		char c_pos = getch();
-		move_to[i] = strtol(&c_pos, NULL, 10);
-		if(move_to[i] <= 0 || move_to[i] > 9){
-			sprintf(statusbar, "%s", "Cancelled");
-			draw();
-			return;
+	// Handle command line input with getopt
+	int flag;
+	while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1){
+		switch (flag){
+		case 'h':
+			printf(	"term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
+					"usage: term-sudoku [-hsvfec] [-d DIR] [-n NUMBER]\n\n"
+					"flags:\n"
+					"-h: display this information\n"
+					"-s: small mode (disables noting numbers)\n"
+					"-v: generate the sudoku visually\n"
+					"-f: list save games and use a selected file as the sudoku\n"
+					"-e: enter your own sudoku\n"
+					"-c: do not ask for confirmation when trying to exit, solve, etc.\n"
+					"-d: DIR: specify directory where save files are and should be saved\n"
+					"-n: NUMBER: numbers to try and remove (default: %d)\n\n"
+					"controls:\n"
+					"%s", ATTEMPTS_DEFAULT, controls);
+			return 0;
+		case 'v':
+			sudoku_gen_visual = true;
+			break;
+		case 'e':
+			own_sudoku = true;
+			break;
+		case 'n':
+			sudoku_attempts = strtol(optarg, NULL, 10);
+			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
+				sudoku_attempts = ATTEMPTS_DEFAULT;
+			break;
+		case 'd':
+			custom_dir = malloc(STR_LEN * sizeof(char));
+			snprintf(custom_dir, STR_LEN, "%s", optarg);
+			break;
+		case 'f':
+			from_file = true;
+			break;
+		case 'c':
+			util_ask_confirmation = false;
+			break;
+		case 's':
+			render_small_mode = true;
+			break;
+		case '?':
+		default:
+			return 1;
 		}
-
-		sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-		draw();
 	}
-	move_cursor_to(move_to[0] - 1, move_to[1] - 1);
+
+    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
+	signal(SIGINT, finish);
+	signal(SIGSEGV, finish);
+
+	// Seed random
+	srand(time(NULL));
+
+	// Set dir as $HOME/.local/share
+	if(custom_dir == NULL){
+		char* home_dir;
+		// Get user home directory
+		struct passwd *pw = getpwuid(getuid());
+		home_dir = pw->pw_dir;
+		// target is: $HOME/.local/share/term-sudoku
+		target_dir = malloc((strlen(home_dir) + strlen(sharepath) + 2) * sizeof(char));
+		sprintf(target_dir, "%s/%s", home_dir, sharepath);
+		// Create (if not already created) the term-sudoku directory in the .local/share directory
+		struct stat st = { 0 };
+		if(stat(target_dir, &st) == -1){
+			if((mkdir(target_dir, 0777)) == -1)
+				finish_with_err_msg("Error: '%s' when trying to create directory '%s'\n", strerror(errno), target_dir);
+		}
+	// Use a custom directory specified in '-d'
+	}else
+		target_dir = custom_dir;
+
+	// Allocate strings, fill with zeros and null-terminate
+	init_sudoku_strings();
+
+	// String for the statusbar and filename
+	statusbar = malloc(STR_LEN * sizeof(char));
+	filename = malloc(STR_LEN * sizeof(char));
+
+	// ncurses intializer functions
+	init_ncurses();
+
+	// List files and open selected file or create a new file or enter your own sudoku
+	if(from_file){
+		// Run fileview()(which runs new_sudoku(), fileview() and mainloop() depending on input)
+		// until it returns false
+		while(fileview());
+		finish(0);
+	}
+	// User enters a new sudoku and edits it in mainloop() if successful
+	else if(own_sudoku){
+		if(own_sudoku_view())
+			mainloop();
+		finish(0);
+	// Not own_sudoku nor from_file: generate new sudoku
+	}else{
+		new_sudoku();
+		mainloop();
+		finish(0);
+	}
 }

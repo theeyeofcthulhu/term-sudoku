@@ -28,8 +28,6 @@ extern char* user_nums;
 extern char* sudoku_str;
 extern int notes[SUDOKU_LEN * LINE_LEN + 1];
 
-struct sudoku_cell_props;
-
 void init_sudoku_strings();
 void generate_sudoku(char* gen_sudoku);
 bool solve_user_nums();

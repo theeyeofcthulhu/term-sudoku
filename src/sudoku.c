@@ -26,6 +26,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <curses.h>
 #include <stdbool.h>
 
+typedef struct{
+	char* vert_line;
+	char* hor_line;
+	char* block;
+}sudoku_cell_props;
+
 bool sudoku_gen_visual = false;
 int sudoku_attempts = ATTEMPTS_DEFAULT;
 
@@ -36,19 +42,13 @@ int notes[SUDOKU_LEN * LINE_LEN + 1];
 void solve_count(char* sudoku_to_solve, int* count);
 void remove_nums(char* gen_sudoku);
 bool solve(char* sudoku_str);
-struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
-void free_cell_props(struct sudoku_cell_props cell);
-
-struct sudoku_cell_props{
-	char* vert_line;
-	char* hor_line;
-	char* block;
-};
+sudoku_cell_props get_cell_props(int cell, char* sudoku_str);
+void free_cell_props(sudoku_cell_props cell);
 
 // Given a cell in a sudoku get the according row, column and block
 // Don't forget to free
-struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
-	struct sudoku_cell_props result;
+sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
+	sudoku_cell_props result;
 
 	result.vert_line = malloc(LINE_LEN * sizeof(char));
 	memcpy(result.vert_line, sudoku_str + (LINE_LEN * (cell / LINE_LEN)), LINE_LEN * sizeof(char));
@@ -64,7 +64,7 @@ struct sudoku_cell_props get_cell_props(int cell, char* sudoku_str){
 	return result;
 }
 
-void free_cell_props(struct sudoku_cell_props cell){
+void free_cell_props(sudoku_cell_props cell){
 	free(cell.vert_line);
 	free(cell.hor_line);
 	free(cell.block);
@@ -72,18 +72,15 @@ void free_cell_props(struct sudoku_cell_props cell){
 
 void init_sudoku_strings(){
 	// Array for sudoku
-	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	sudoku_str = malloc((SUDOKU_LEN) * sizeof(char));
 	for(int i = 0; i < SUDOKU_LEN; sudoku_str[i++] = '0');
-	sudoku_str[SUDOKU_LEN] = '\0';
 
 	// Array for numbers the user enters
-	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	user_nums = malloc((SUDOKU_LEN) * sizeof(char));
 	for(int i = 0; i < SUDOKU_LEN; user_nums[i++] = '0');
-	user_nums[SUDOKU_LEN] = '\0';
 
 	// Array for notetaking
 	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
-	notes[SUDOKU_LEN * LINE_LEN] = '\0';
 }
 
 // Generate a random sudoku
@@ -175,7 +172,7 @@ bool solve_user_nums(){
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		if(combined_solution[i] == '0'){
 			// Get the fields associated with the value at i
-			struct sudoku_cell_props cell_props = get_cell_props(i, combined_solution);
+			sudoku_cell_props cell_props = get_cell_props(i, combined_solution);
 
 			// Try to assign a value to the cell at i
 			for(int j = '1'; j <= '9'; j++){
@@ -223,7 +220,7 @@ bool solve(char* sudoku_to_solve){
 	for(int i = 0; i < SUDOKU_LEN; i++){
 		if(sudoku_to_solve[i] == '0'){
 			// Get the fields associated with the value at start
-			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+			sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
 
 			// Try to assign a value to the cell at i
 			for(int j = '1'; j <= '9'; j++){
@@ -271,7 +268,7 @@ void solve_count(char* sudoku_to_solve, int* count){
 		if(sudoku_to_solve[i] == '0'){
 			// Get the fields associated with the value at i
 			
-			struct sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+			sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
 
 			// Try to assign a value to the cell at i
 			for(int j = '1'; j <= '9'; j++){

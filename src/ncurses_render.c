@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https:// www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "ncurses_render.h"
@@ -31,7 +31,7 @@ along with this program.  If not, see <https:// www.gnu.org/licenses/>.
 bool render_small_mode = false;
 char* statusbar;
 char highlight = '0';
-struct cursor cursor;
+Cursor cursor;
 
 void draw_sudokus();
 void read_notes();
