@@ -24,8 +24,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern bool sudoku_gen_visual;
 extern int sudoku_attempts;
-extern char* user_nums;
-extern char* sudoku_str;
+extern char user_nums[SUDOKU_LEN];
+extern char sudoku_str[SUDOKU_LEN];
 extern int notes[SUDOKU_LEN * LINE_LEN + 1];
 
 void init_sudoku_strings();
