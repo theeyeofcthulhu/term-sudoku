@@ -35,9 +35,9 @@ typedef struct{
 bool sudoku_gen_visual = false;
 int sudoku_attempts = ATTEMPTS_DEFAULT;
 
-char user_nums[SUDOKU_LEN];
-char sudoku_str[SUDOKU_LEN];
-int notes[SUDOKU_LEN * LINE_LEN];
+char* user_nums;
+char* sudoku_str;
+int notes[SUDOKU_LEN * LINE_LEN] = {0};
 
 void solve_count(char* sudoku_to_solve, int* count);
 void remove_nums(char* gen_sudoku);
@@ -68,17 +68,6 @@ void free_cell_props(sudoku_cell_props cell){
 	free(cell.vert_line);
 	free(cell.hor_line);
 	free(cell.block);
-}
-
-void init_sudoku_strings(){
-	// Array for sudoku
-	for(int i = 0; i < SUDOKU_LEN; sudoku_str[i++] = '0');
-
-	// Array for numbers the user enters
-	for(int i = 0; i < SUDOKU_LEN; user_nums[i++] = '0');
-
-	// Array for notetaking
-	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; notes[i++] = 0);
 }
 
 // Generate a random sudoku

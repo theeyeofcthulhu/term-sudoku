@@ -67,12 +67,9 @@ char* target_dir;
 void new_sudoku(){
 	gen_file_name();
 
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		sudoku_str[i] = '0';
-		user_nums[i] = '0';
-	}
-	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
-		notes[i] = 0;
+	memset(sudoku_str, '0', SUDOKU_LEN);
+	memset(user_nums, '0', SUDOKU_LEN);
+	memset(notes, 0, (sizeof(notes) / sizeof(notes[0]) * sizeof(int)));
 
 	// Generate the sudoku
 	generate_sudoku(sudoku_str);
@@ -480,8 +477,8 @@ int main(int argc, char **argv){
 				sudoku_attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
-			custom_dir = malloc(STR_LEN * sizeof(char));
-			snprintf(custom_dir, STR_LEN, "%s", optarg);
+			custom_dir = malloc((strlen(optarg) + 1) * sizeof(char));
+			strcpy(custom_dir, optarg);
 			break;
 		case 'f':
 			from_file = true;
@@ -525,7 +522,13 @@ int main(int argc, char **argv){
 		target_dir = custom_dir;
 
 	// Allocate strings, fill with zeros and null-terminate
-	init_sudoku_strings();
+	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
+	user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
+
+	memset(sudoku_str, '0', SUDOKU_LEN);
+	sudoku_str[SUDOKU_LEN] = '\0';
+	memset(user_nums, '0', SUDOKU_LEN);
+	user_nums[SUDOKU_LEN] = '\0';
 
 	// String for the statusbar and filename
 	statusbar = malloc(STR_LEN * sizeof(char));
