@@ -67,6 +67,7 @@ char* target_dir;
 void new_sudoku(){
 	gen_file_name();
 
+	// Clear sudoku arrays
 	memset(sudoku_str, '0', SUDOKU_LEN);
 	memset(user_nums, '0', SUDOKU_LEN);
 	memset(notes, 0, (sizeof(notes) / sizeof(notes[0]) * sizeof(int)));
@@ -105,12 +106,9 @@ bool own_sudoku_view(){
 	gen_file_name();
 
 	// Clear sudoku arrays
-	for(int i = 0; i < SUDOKU_LEN; i++){
-		sudoku_str[i] = '0';
-		user_nums[i] = '0';
-	}
-	for(int i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
-		notes[i] = 0;
+	memset(sudoku_str, '0', SUDOKU_LEN);
+	memset(user_nums, '0', SUDOKU_LEN);
+	memset(notes, 0, (sizeof(notes) / sizeof(notes[0]) * sizeof(int)));
 
 	sprintf(statusbar, "%s", "Enter your sudoku");
 	// Controls displayed only in this view
