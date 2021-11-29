@@ -22,8 +22,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern bool sudoku_gen_visual;
-extern int sudoku_attempts;
 extern char* user_nums;
 extern char* sudoku_str;
 extern int notes[SUDOKU_LEN * LINE_LEN];

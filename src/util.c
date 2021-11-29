@@ -31,8 +31,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <time.h>
 #include <errno.h>
 
-bool util_ask_confirmation = true;
-
 // Exit ncurses cleanly
 
 void finish(int sig){
@@ -113,7 +111,7 @@ void gen_file_name(){
 // Ask for confirmation by displaying
 bool status_bar_confirmation(){
 	// Return if the '-c' flag is set (the user does not want to be asked)
-	if(!util_ask_confirmation)
+	if(!opts.ask_confirmation)
 		return true;
 
 	char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));

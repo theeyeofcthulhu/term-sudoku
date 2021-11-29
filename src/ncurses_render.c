@@ -28,7 +28,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <unistd.h>
 
-bool render_small_mode = false;
 char* statusbar;
 char highlight = '0';
 Cursor cursor;
@@ -64,19 +63,19 @@ void init_ncurses(){
 // Draws everything
 void draw(){
 	erase();
-	if(!render_small_mode)
+	if(!opts.small_mode)
 		read_notes(notes);
 	draw_sudokus(sudoku_str, user_nums);
 
-	int string_y = render_small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : PUZZLE_OFFSET;
-	int string_x = render_small_mode ? 0 : (LINE_LEN * 4) + 3 + PUZZLE_OFFSET;
+	int string_y = opts.small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : PUZZLE_OFFSET;
+	int string_x = opts.small_mode ? 0 : (LINE_LEN * 4) + 3 + PUZZLE_OFFSET;
 
 	mvaddstr(string_y, string_x, statusbar);
 	string_y += 2;
 
 	// Split controls by '\n' characters to draw everything to the right of the puzzle when in big mode.
 	// This has to be done because when drawing the whole string, only the first line is transposed to string_x.
-	if(!render_small_mode){
+	if(!opts.small_mode){
 		char* control_copy = malloc((strlen(controls) + 1) * sizeof(char));
 		strcpy(control_copy, controls);
 
@@ -108,7 +107,7 @@ void generate_visually(char* sudoku_to_display){
 // Number indicators on the sides, borders for large and small mode,
 // different colors for indicating which is a block border
 void draw_border(){
-	if(!render_small_mode){
+	if(!opts.small_mode){
 		for(int y = 0; y < LINE_LEN + 1; y++){
 			// On every third vertical line, add colored seperator
 			if(y % 3 == 0)
@@ -175,7 +174,7 @@ void draw_border(){
 // Read Sudoku to screen, respecting borders, etc.
 void read_sudoku(char* sudoku, int color_mode, int color_mode_highlight){
 	attron(COLOR_PAIR(color_mode));
-	if(!render_small_mode){
+	if(!opts.small_mode){
 		// Offset for counting in seperators when drawing numbers
 		int yoff = PUZZLE_OFFSET;
 		for(int y = 0; y < LINE_LEN; y++){
@@ -249,7 +248,7 @@ void read_notes(){
 void move_cursor_to(int x, int y){
 	cursor.x = x;
 	cursor.y = y;
-	if(render_small_mode)
+	if(opts.small_mode)
 		move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET, cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
 	else
 		move((cursor.y * 4) + 2 + PUZZLE_OFFSET, (cursor.x * 4) + 2 + PUZZLE_OFFSET);
@@ -257,7 +256,7 @@ void move_cursor_to(int x, int y){
 
 // Move cursor but don't get into the seperators
 void move_cursor(){
-	if(render_small_mode)
+	if(opts.small_mode)
 		move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET, cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
 	else
 		move((cursor.y * 4) + 2 + PUZZLE_OFFSET, (cursor.x * 4) + 2 + PUZZLE_OFFSET);

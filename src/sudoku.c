@@ -32,9 +32,6 @@ typedef struct{
 	char* block;
 }sudoku_cell_props;
 
-bool sudoku_gen_visual = false;
-int sudoku_attempts = ATTEMPTS_DEFAULT;
-
 char* user_nums;
 char* sudoku_str;
 int notes[SUDOKU_LEN * LINE_LEN] = {0};
@@ -74,7 +71,7 @@ void free_cell_props(sudoku_cell_props cell){
 // This function generates the diagonal blocks from left to right and then calls solve()
 // and remove_nums() to first fill out and then remove some numbers to create a complete puzzle
 void generate_sudoku(char* gen_sudoku){
-	if(sudoku_gen_visual)
+	if(opts.gen_visual)
 		curs_set(0);
 	// Fill each diagonal block with the values 1-9
 	/* [x][ ][ ]
@@ -96,7 +93,7 @@ void generate_sudoku(char* gen_sudoku){
 				}
 			}
 			// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
-			if(sudoku_gen_visual){
+			if(opts.gen_visual){
 				generate_visually(gen_sudoku);
 			}
 		}
@@ -107,13 +104,13 @@ void generate_sudoku(char* gen_sudoku){
 	// Remove numbers but maintain unique solution
 	remove_nums(gen_sudoku);
 
-	if(sudoku_gen_visual)
+	if(opts.gen_visual)
 		curs_set(1);
 }
 
 // Try and remove numbers until the solution is not unique
 void remove_nums(char* gen_sudoku){
-	int local_attempts = sudoku_attempts;
+	int local_attempts = opts.attempts;
 	int length = strlen(gen_sudoku) + 1;
 	// Run down the attempts defined with '-n'
 	while(local_attempts > 0){
@@ -197,7 +194,7 @@ bool solve_user_nums(){
 // Solve a sudoku (used in generating)
 bool solve(char* sudoku_to_solve){
 	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
-	if(sudoku_gen_visual)
+	if(opts.gen_visual)
 		generate_visually(sudoku_to_solve);
 
 	// If sudoku is valid, return
@@ -247,7 +244,7 @@ void solve_count(char* sudoku_to_solve, int* count){
 		return;
 
 	// Draw the process of filling out the sudoku visually on the screen if that option is set via '-v'
-	if(sudoku_gen_visual)
+	if(opts.gen_visual)
 		generate_visually(sudoku_to_solve);
 
 	// find empty cell

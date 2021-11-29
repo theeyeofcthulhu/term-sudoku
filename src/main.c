@@ -54,14 +54,11 @@ char* controls;
 
 bool editing_notes = false;
 
-bool from_file = false;
-bool own_sudoku = false;
-
-char* custom_dir;
-
 char* filename;
 char* sharepath = ".local/share/term-sudoku";
 char* target_dir;
+
+TSOpts opts;
 
 // Generate a new sudoku for the user to solve
 void new_sudoku(){
@@ -375,7 +372,7 @@ void mainloop(){
 				break;
 			// Enter edit mode
 			case 'e':
-				if(render_small_mode)
+				if(opts.small_mode)
 					break;
 				editing_notes = !editing_notes;
 				char* mode = editing_notes ? "Note" : "Normal";
@@ -444,6 +441,16 @@ void mainloop(){
 int main(int argc, char **argv){
 	controls = controls_default;
 
+	opts = (TSOpts){
+		.gen_visual = false,
+		.own_sudoku = false,
+		.attempts = ATTEMPTS_DEFAULT,
+		.custom_dir = NULL,
+		.from_file = false,
+		.ask_confirmation = true,
+		.small_mode = false,
+	};
+
 	// Handle command line input with getopt
 	int flag;
 	while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1){
@@ -464,28 +471,28 @@ int main(int argc, char **argv){
 					"%s", ATTEMPTS_DEFAULT, controls);
 			return 0;
 		case 'v':
-			sudoku_gen_visual = true;
+			opts.gen_visual = true;
 			break;
 		case 'e':
-			own_sudoku = true;
+			opts.own_sudoku = true;
 			break;
 		case 'n':
-			sudoku_attempts = strtol(optarg, NULL, 10);
-			if(sudoku_attempts <= 0 || sudoku_attempts >= SUDOKU_LEN)
-				sudoku_attempts = ATTEMPTS_DEFAULT;
+			opts.attempts = strtol(optarg, NULL, 10);
+			if(opts.attempts <= 0 || opts.attempts >= SUDOKU_LEN)
+				opts.attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
-			custom_dir = malloc((strlen(optarg) + 1) * sizeof(char));
-			strcpy(custom_dir, optarg);
+			opts.custom_dir = malloc((strlen(optarg) + 1) * sizeof(char));
+			strcpy(opts.custom_dir, optarg);
 			break;
 		case 'f':
-			from_file = true;
+			opts.from_file = true;
 			break;
 		case 'c':
-			util_ask_confirmation = false;
+			opts.ask_confirmation = false;
 			break;
 		case 's':
-			render_small_mode = true;
+			opts.small_mode = true;
 			break;
 		case '?':
 		default:
@@ -501,7 +508,7 @@ int main(int argc, char **argv){
 	srand(time(NULL));
 
 	// Set dir as $HOME/.local/share
-	if(custom_dir == NULL){
+	if(opts.custom_dir == NULL){
 		char* home_dir;
 		// Get user home directory
 		struct passwd *pw = getpwuid(getuid());
@@ -517,7 +524,7 @@ int main(int argc, char **argv){
 		}
 	// Use a custom directory specified in '-d'
 	}else
-		target_dir = custom_dir;
+		target_dir = opts.custom_dir;
 
 	// Allocate strings, fill with zeros and null-terminate
 	sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
@@ -536,14 +543,14 @@ int main(int argc, char **argv){
 	init_ncurses();
 
 	// List files and open selected file or create a new file or enter your own sudoku
-	if(from_file){
+	if(opts.from_file){
 		// Run fileview()(which runs new_sudoku(), fileview() and mainloop() depending on input)
 		// until it returns false
 		while(fileview());
 		finish(0);
 	}
 	// User enters a new sudoku and edits it in mainloop() if successful
-	else if(own_sudoku){
+	else if(opts.own_sudoku){
 		if(own_sudoku_view())
 			mainloop();
 		finish(0);

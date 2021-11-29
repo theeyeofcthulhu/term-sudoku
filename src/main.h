@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
 #define ATTEMPTS_DEFAULT 5
@@ -24,6 +26,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define PUZZLE_OFFSET 1
 
 #include <stdbool.h>
+
+typedef struct{
+    bool gen_visual;
+    bool own_sudoku;
+    int attempts;
+    char* custom_dir;
+    bool from_file;
+    bool ask_confirmation;
+    bool small_mode;
+}TSOpts;
+
+extern TSOpts opts;
 
 extern char* controls;
 extern char* target_dir;

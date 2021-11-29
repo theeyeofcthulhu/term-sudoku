@@ -20,8 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern bool util_ask_confirmation;
-
 void finish(int sig);
 void finish_with_err_msg(char* msg, ...);
 void gen_file_name();

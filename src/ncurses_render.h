@@ -20,7 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern bool render_small_mode;
 extern char* statusbar;
 extern char highlight;
 
