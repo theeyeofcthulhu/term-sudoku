@@ -482,8 +482,7 @@ int main(int argc, char **argv){
 				opts.attempts = ATTEMPTS_DEFAULT;
 			break;
 		case 'd':
-			opts.custom_dir = malloc((strlen(optarg) + 1) * sizeof(char));
-			strcpy(opts.custom_dir, optarg);
+			opts.custom_dir = strdup(optarg);
 			break;
 		case 'f':
 			opts.from_file = true;

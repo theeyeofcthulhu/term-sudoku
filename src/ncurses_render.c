@@ -76,8 +76,7 @@ void draw(){
 	// Split controls by '\n' characters to draw everything to the right of the puzzle when in big mode.
 	// This has to be done because when drawing the whole string, only the first line is transposed to string_x.
 	if(!opts.small_mode){
-		char* control_copy = malloc((strlen(controls) + 1) * sizeof(char));
-		strcpy(control_copy, controls);
+		char* control_copy = strdup(controls);
 
 		char* control_line;
 		// control_copy_ptr becomes NULL after first iteration since every call to strtok after the first one

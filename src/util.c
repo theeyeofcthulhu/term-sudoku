@@ -68,8 +68,7 @@ void listfiles(char* target_dir, char* items[], int* iterator){
 	if(diretory_object){
 		while((dir = readdir(diretory_object)) != NULL){
 			if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) && strlen(dir->d_name) < STR_LEN){
-				char* new_item = malloc((strlen(dir->d_name) + 1) * sizeof(char));
-				strcpy(new_item, dir->d_name);
+				char* new_item = strdup(dir->d_name);
 				items[*iterator] = new_item;
 				*iterator += 1;
 			}
@@ -114,8 +113,7 @@ bool status_bar_confirmation(){
 	if(!opts.ask_confirmation)
 		return true;
 
-	char* statusbar_backup = malloc((strlen(statusbar) + 1) * sizeof(char));
-	strcpy(statusbar_backup, statusbar);
+	char* statusbar_backup = strdup(statusbar);
 
 	sprintf(statusbar, "%s", "Sure? y/n");
 	draw();
