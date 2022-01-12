@@ -65,6 +65,7 @@ void init_ncurses()
     init_pair(5, COLOR_BLACK, COLOR_BLUE);
 }
 
+#define CONTROL_BUF_SZ 256
 // Draws everything
 void draw()
 {
@@ -84,7 +85,8 @@ void draw()
     // puzzle when in big mode. This has to be done because when drawing the
     // whole string, only the first line is transposed to string_x.
     if (!opts.small_mode) {
-        char *control_copy = strdup(controls);
+        static char control_copy[CONTROL_BUF_SZ];
+        strcpy(control_copy, controls);
 
         char *control_line;
         // control_copy_ptr becomes NULL after first iteration since every call
@@ -93,8 +95,6 @@ void draw()
              (control_line = strtok(control_copy_ptr, "\n")) != NULL;
              control_copy_ptr = NULL, string_y++)
             mvaddstr(string_y, string_x, control_line);
-
-        free(control_copy);
     } else
         mvaddstr(string_y, string_x, controls);
 
