@@ -81,9 +81,10 @@ void listfiles(char *target_dir, char *items[], int *iterator)
             }
         }
         closedir(diretory_object);
-    } else
+    } else {
         finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n",
                             strerror(errno), target_dir);
+    }
 }
 
 // Write sudoku_str, user_nums and notes to file
@@ -98,6 +99,7 @@ bool savestate()
     for (int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
         fprintf(savestate, "%d", notes[i]);
     fprintf(savestate, "\n");
+
     fclose(savestate);
 
     return true;
@@ -126,7 +128,8 @@ bool status_bar_confirmation()
     if (!opts.ask_confirmation)
         return true;
 
-    char *statusbar_backup = strdup(statusbar);
+    char statusbar_backup[STR_LEN];
+    strcpy(statusbar_backup, statusbar);
 
     sprintf(statusbar, "%s", "Sure? y/n");
     draw();
@@ -134,7 +137,6 @@ bool status_bar_confirmation()
     char confirm = getch();
 
     sprintf(statusbar, "%s", statusbar_backup);
-    free(statusbar_backup);
     draw();
 
     if (confirm != 'y')

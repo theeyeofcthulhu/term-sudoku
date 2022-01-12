@@ -138,11 +138,12 @@ void remove_nums(char *gen_sudoku)
         }
 
         // Generate a copy of the sudoku and count how many solutions it has
-        char *sudoku_cpy = strdup(gen_sudoku);
+        char sudoku_cpy[SUDOKU_LEN];
+        strcpy(sudoku_cpy, gen_sudoku);
+
         sudoku_cpy[cell] = '0';
         int count = 0;
         solve_count(sudoku_cpy, &count);
-        free(sudoku_cpy);
 
         // If unique, apply to real sudoku
         if (count == 1)

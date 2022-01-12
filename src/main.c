@@ -516,7 +516,7 @@ int main(int argc, char **argv)
                 opts.attempts = ATTEMPTS_DEFAULT;
             break;
         case 'd':
-            opts.custom_dir = strdup(optarg);
+            opts.custom_dir = optarg;
             break;
         case 'f':
             opts.from_file = true;
