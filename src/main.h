@@ -40,4 +40,4 @@ extern TSOpts opts;
 
 extern char *controls;
 extern char *target_dir;
-extern char *filename;
+extern char filename[STR_LEN];

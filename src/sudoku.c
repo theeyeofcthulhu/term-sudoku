@@ -27,49 +27,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 
 typedef struct {
-    char *vert_line;
-    char *hor_line;
-    char *block;
+    char vert_line[LINE_LEN];
+    char hor_line[LINE_LEN];
+    char block[LINE_LEN];
 } sudoku_cell_props;
 
-char *user_nums;
-char *sudoku_str;
+char user_nums[SUDOKU_LEN];
+char sudoku_str[SUDOKU_LEN];
 int notes[SUDOKU_LEN * LINE_LEN] = {0};
 
 void solve_count(char *sudoku_to_solve, int *count);
 void remove_nums(char *gen_sudoku);
 bool solve(char *sudoku_str);
-sudoku_cell_props get_cell_props(int cell, char *sudoku_str);
-void free_cell_props(sudoku_cell_props cell);
+void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku_str);
 
 // Given a cell in a sudoku get the according row, column and block
-// Don't forget to free
-sudoku_cell_props get_cell_props(int cell, char *sudoku_str)
+void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku_str)
 {
-    sudoku_cell_props result;
-
-    result.vert_line = malloc(LINE_LEN * sizeof(char));
-    memcpy(result.vert_line, sudoku_str + (LINE_LEN * (cell / LINE_LEN)),
-           LINE_LEN * sizeof(char));
-
-    result.hor_line = malloc(LINE_LEN * sizeof(char));
-    for (int y = 0; y < LINE_LEN; y++)
-        result.hor_line[y] = sudoku_str[y * LINE_LEN + (cell % LINE_LEN)];
-
-    result.block = malloc(LINE_LEN * sizeof(char));
-    for (int j = 0; j < LINE_LEN; j++)
-        result.block[j] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN +
+    for (int i = 0; i < LINE_LEN; i++) {
+        out->vert_line[i] = sudoku_str[i * LINE_LEN + (cell % LINE_LEN)];
+        out->hor_line[i] = sudoku_str[(cell / LINE_LEN) * LINE_LEN + i];
+        out->block[i] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN +
                                      (((cell % LINE_LEN) / 3) * 3) +
-                                     (LINE_LEN * (j / 3)) + (j % 3)];
-
-    return result;
-}
-
-void free_cell_props(sudoku_cell_props cell)
-{
-    free(cell.vert_line);
-    free(cell.hor_line);
-    free(cell.block);
+                                     (LINE_LEN * (i / 3)) + (i % 3)];
+    }
 }
 
 // Generate a random sudoku
@@ -158,21 +139,22 @@ void remove_nums(char *gen_sudoku)
 bool solve_user_nums()
 {
     // Combine entered numbers and puzzle to check if it is correct
-    char *combined_solution = malloc((SUDOKU_LEN) * sizeof(char));
-    for (int i = 0; i < SUDOKU_LEN; i++)
+    char combined_solution[SUDOKU_LEN];
+    for (int i = 0; i < SUDOKU_LEN; i++) {
         combined_solution[i] =
             sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
+    }
 
     // Return true if the sudoku is already valid
     if (check_validity(combined_solution)) {
-        free(combined_solution);
         return true;
     }
 
     for (int i = 0; i < SUDOKU_LEN; i++) {
         if (combined_solution[i] == '0') {
             // Get the fields associated with the value at i
-            sudoku_cell_props cell_props = get_cell_props(i, combined_solution);
+            sudoku_cell_props cell_props;
+            get_cell_props(&cell_props, i, combined_solution);
 
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
@@ -188,8 +170,6 @@ bool solve_user_nums()
                     user_nums[i] = j;
                     // Check the whole path
                     if (solve_user_nums()) {
-                        free_cell_props(cell_props);
-                        free(combined_solution);
                         return true;
                     }
 
@@ -198,8 +178,6 @@ bool solve_user_nums()
                 }
             }
 
-            free_cell_props(cell_props);
-            free(combined_solution);
             break;
         }
     }
@@ -222,7 +200,8 @@ bool solve(char *sudoku_to_solve)
     for (int i = 0; i < SUDOKU_LEN; i++) {
         if (sudoku_to_solve[i] == '0') {
             // Get the fields associated with the value at start
-            sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+            sudoku_cell_props cell_props;
+            get_cell_props(&cell_props, i, sudoku_to_solve);
 
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
@@ -237,7 +216,6 @@ bool solve(char *sudoku_to_solve)
                     sudoku_to_solve[i] = j;
                     // Check the whole path
                     if (solve(sudoku_to_solve)) {
-                        free_cell_props(cell_props);
                         return true;
                     }
 
@@ -246,7 +224,6 @@ bool solve(char *sudoku_to_solve)
                 }
             }
 
-            free_cell_props(cell_props);
             break;
         }
     }
@@ -274,7 +251,8 @@ void solve_count(char *sudoku_to_solve, int *count)
         if (sudoku_to_solve[i] == '0') {
             // Get the fields associated with the value at i
 
-            sudoku_cell_props cell_props = get_cell_props(i, sudoku_to_solve);
+            sudoku_cell_props cell_props;
+            get_cell_props(&cell_props, i, sudoku_to_solve);
 
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
@@ -304,8 +282,6 @@ void solve_count(char *sudoku_to_solve, int *count)
                     sudoku_to_solve[i] = '0';
                 }
             }
-
-            free_cell_props(cell_props);
             break;
         }
     }
@@ -313,69 +289,38 @@ void solve_count(char *sudoku_to_solve, int *count)
     return;
 }
 
+// TODO: remove overhead from checking lines multiple times
+//       (use a mechanism to get each line, column and block)
+
 // Check for errors in the solved sudoku
-bool check_validity(char *combined_solution)
+bool check_validity(const char *combined_solution)
 {
-    // Check for errors in vertical lines
-    for (int i = 0; i < LINE_LEN; i++) {
-        char *vert_line = malloc(LINE_LEN * sizeof(char));
-        // Copy the line from the combined string to vert_line
-        memcpy(vert_line, combined_solution + (LINE_LEN * i),
-               LINE_LEN * sizeof(char));
+    bool is_valid = true;
 
-        // Check each digit against the others and check for zeros
+    for (int i = 0; i < SUDOKU_LEN; i++) {
+        sudoku_cell_props cell_props;
+        get_cell_props(&cell_props, i, combined_solution);
+
+        // Keeps count if a number already appeared in a sudoku unit
+        bool appeared[3][LINE_LEN + 1] = {false};
         for (int j = 0; j < LINE_LEN; j++) {
-            char current_digit = vert_line[j];
-            for (int k = 0; k < LINE_LEN; k++) {
-                if ((vert_line[k] == current_digit && k != j) ||
-                    vert_line[j] == '0') {
-                    free(vert_line);
-                    return false;
+            int cur_comp[3];
+
+            cur_comp[0] = cell_props.hor_line[j] - 0x30;
+            cur_comp[1] = cell_props.vert_line[j] - 0x30;
+            cur_comp[2] = cell_props.block[j] - 0x30;
+
+            for (int k = 0; k < 3; k++) {
+                if (appeared[k][cur_comp[k]] || cur_comp[k] == 0) {
+                    is_valid = false;
+                    goto out_ret_result;
                 }
+
+                appeared[k][cur_comp[k]] = true;
             }
-        }
-        free(vert_line);
-
-        char *hor_line = malloc(LINE_LEN * sizeof(char));
-
-        for (int y = 0; y < LINE_LEN; y++)
-            hor_line[y] = combined_solution[y * LINE_LEN + i];
-
-        // Check each digit against the others
-        for (int i = 0; i < LINE_LEN; i++) {
-            char current_digit = hor_line[i];
-            for (int j = 0; j < LINE_LEN; j++) {
-                if (hor_line[j] == current_digit && j != i) {
-                    free(hor_line);
-                    return false;
-                }
-            }
-        }
-        free(hor_line);
-    }
-
-    // Check for errors in blocks
-    for (int x = 0; x < LINE_LEN / 3; x++) {
-        for (int y = 0; y < LINE_LEN / 3; y++) {
-            char *block = malloc(LINE_LEN * sizeof(char));
-            for (int i = 0; i < LINE_LEN; i++)
-                block[i] = combined_solution[(y * 3) * LINE_LEN + (x * 3) +
-                                             (LINE_LEN * (i / 3)) + (i % 3)];
-
-            // Check each digit against the others
-            for (int i = 0; i < LINE_LEN; i++) {
-                char current_digit = block[i];
-                for (int j = 0; j < LINE_LEN; j++) {
-                    if (block[j] == current_digit && j != i) {
-                        free(block);
-                        return false;
-                    }
-                }
-            }
-
-            free(block);
         }
     }
 
-    return true;
+out_ret_result:
+    return is_valid;
 }

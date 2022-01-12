@@ -20,7 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern char *statusbar;
+#include "main.h"
+
+extern char statusbar[STR_LEN];
 extern char highlight;
 
 typedef struct {

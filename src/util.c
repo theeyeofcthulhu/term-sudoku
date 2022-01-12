@@ -110,15 +110,12 @@ void gen_file_name()
     time_t t = time(NULL);
     // localtime struct for file name
     struct tm tm = *localtime(&t);
-    char *filename_no_dir = malloc(27 * sizeof(char));
+
     // Generate file name with the current time
-    sprintf(filename_no_dir, "%4d-%02d-%02d-%02d-%02d-%02d%s",
-            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-            tm.tm_sec, ".sudoku");
+    char fn[STR_LEN];
+    strftime(fn, sizeof(fn), "%Y-%m-%d-%H-%M-%S.sudoku", &tm);
 
-    sprintf(filename, "%s/%s", target_dir, filename_no_dir);
-
-    free(filename_no_dir);
+    sprintf(filename, "%s/%s", target_dir, fn);
 }
 
 // Ask for confirmation by displaying

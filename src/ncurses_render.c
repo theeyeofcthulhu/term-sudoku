@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000000
 const struct timespec sleep_request = {0, VISUAL_SLEEP};
 
-char *statusbar;
+char statusbar[STR_LEN];
 char highlight = '0';
 Cursor cursor;
 
@@ -153,11 +153,8 @@ void draw_border()
         for (int i = 0; i < LINE_LEN; i++) {
             if (i % 3 == 0)
                 local_off++;
-            char *to_string = malloc(2 * sizeof(char));
-            sprintf(to_string, "%d", i + 1);
-            mvaddstr(i * 4 + PUZZLE_OFFSET + 2, 0, to_string);
-            mvaddstr(0, i * 4 + PUZZLE_OFFSET + 2, to_string);
-            free(to_string);
+            mvprintw(i * 4 + PUZZLE_OFFSET + 2, 0, "%d", i + 1);
+            mvprintw(0, i * 4 + PUZZLE_OFFSET + 2, "%d", i + 1);
         }
     } else {
         // Draw borders for small mode
@@ -175,11 +172,8 @@ void draw_border()
         for (int i = 0; i < LINE_LEN; i++) {
             if (i % 3 == 0)
                 local_off++;
-            char *to_string = malloc(sizeof(char));
-            sprintf(to_string, "%d", i + 1);
-            mvaddstr(i + PUZZLE_OFFSET + local_off, 0, to_string);
-            mvaddstr(0, i + PUZZLE_OFFSET + local_off, to_string);
-            free(to_string);
+            mvprintw(i + PUZZLE_OFFSET + local_off, 0, "%d", i + 1);
+            mvprintw(0, i + PUZZLE_OFFSET + local_off, "%d", i + 1);
         }
     }
 }

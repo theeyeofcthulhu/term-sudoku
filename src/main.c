@@ -54,7 +54,7 @@ char *controls;
 
 bool editing_notes = false;
 
-char *filename;
+char filename[STR_LEN];
 const char *sharepath = ".local/share/term-sudoku";
 char *target_dir;
 
@@ -248,17 +248,15 @@ bool fileview()
         // Delete selected file and re-read files
         case 'd':
         {
-            char *temp_file =
-                malloc((strlen(target_dir) + strlen(items[position]) + 2) *
-                       sizeof(char));
-            sprintf(temp_file, "%s/%s", target_dir, items[position]);
-            if (remove(temp_file) == -1)
+            char temp_file[STR_LEN];
+            snprintf(temp_file, STR_LEN, "%s/%s", target_dir, items[position]);
+            if (remove(temp_file) == -1) {
                 finish_with_err_msg("Error: '%s' when trying to remove '%s'\n",
                                     strerror(errno), temp_file);
+            }
             for (int j = 0; j < iterator; j++)
                 free(items[j]);
             listfiles(target_dir, items, &iterator);
-            free(temp_file);
             break;
         }
         case 'q':
@@ -366,10 +364,11 @@ void mainloop()
         // Check for errors and write result to statusbar
         case 'c':
         {
-            char *combined_solution = malloc((SUDOKU_LEN + 1) * sizeof(char));
-            for (int i = 0; i < SUDOKU_LEN; i++)
+            char combined_solution[SUDOKU_LEN];
+            for (int i = 0; i < SUDOKU_LEN; i++) {
                 combined_solution[i] =
                     sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
+            }
 
             if (check_validity(combined_solution))
                 sprintf(statusbar, "%s", "Valid");
@@ -377,8 +376,6 @@ void mainloop()
                 sprintf(statusbar, "%s", "Invalid or not filled out");
 
             draw();
-
-            free(combined_solution);
             break;
         }
         // Fill out sudoku; ask for confirmation first
@@ -554,27 +551,19 @@ int main(int argc, char **argv)
         // .local/share directory
         struct stat st = {0};
         if (stat(target_dir, &st) == -1) {
-            if ((mkdir(target_dir, 0777)) == -1)
+            if ((mkdir(target_dir, 0777)) == -1) {
                 finish_with_err_msg(
                     "Error: '%s' when trying to create directory '%s'\n",
                     strerror(errno), target_dir);
+            }
         }
         // Use a custom directory specified in '-d'
-    } else
+    } else {
         target_dir = opts.custom_dir;
-
-    // Allocate strings, fill with zeros and null-terminate
-    sudoku_str = malloc((SUDOKU_LEN + 1) * sizeof(char));
-    user_nums = malloc((SUDOKU_LEN + 1) * sizeof(char));
+    }
 
     memset(sudoku_str, '0', SUDOKU_LEN);
-    sudoku_str[SUDOKU_LEN] = '\0';
     memset(user_nums, '0', SUDOKU_LEN);
-    user_nums[SUDOKU_LEN] = '\0';
-
-    // String for the statusbar and filename
-    statusbar = malloc(STR_LEN * sizeof(char));
-    filename = malloc(STR_LEN * sizeof(char));
 
     // ncurses intializer functions
     init_ncurses();
