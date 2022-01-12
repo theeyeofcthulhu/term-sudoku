@@ -27,6 +27,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
+
+#define VISUAL_SLEEP 10000000
+const struct timespec sleep_request = {0, VISUAL_SLEEP};
 
 char* statusbar;
 char highlight = '0';
@@ -99,7 +103,7 @@ void generate_visually(char* sudoku_to_display){
 	draw_border();
 	read_sudoku(sudoku_to_display, 1, 4);
 	refresh();
-	usleep(VISUAL_SLEEP);
+	nanosleep(&sleep_request, NULL);
 }
 
 // Draws the 'skeleton' of the sudoku:

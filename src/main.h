@@ -21,7 +21,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
 #define ATTEMPTS_DEFAULT 5
-#define VISUAL_SLEEP 10000
 #define STR_LEN 80
 #define PUZZLE_OFFSET 1
 

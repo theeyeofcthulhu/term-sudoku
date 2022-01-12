@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -g -Wall
+CCFLAGS = -g -Wall -Wextra -std=c11 -pedantic -D_POSIX_C_SOURCE=200809
 LIBS = $(addprefix -l,ncurses)
 
 SRC = $(addprefix src/,main.c util.c sudoku.c ncurses_render.c)
