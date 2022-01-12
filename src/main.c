@@ -40,7 +40,7 @@ bool own_sudoku_view();
 bool fileview();
 void mainloop();
 
-char* controls_default = "move - h, j, k and l or arrow keys\n"
+const char* controls_default = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
 					"x or 0 - delete numbers\n"
 					"save - s\n"
@@ -55,7 +55,7 @@ char* controls;
 bool editing_notes = false;
 
 char* filename;
-char* sharepath = ".local/share/term-sudoku";
+const char* sharepath = ".local/share/term-sudoku";
 char* target_dir;
 
 TSOpts opts;
@@ -109,13 +109,13 @@ bool own_sudoku_view(){
 
 	sprintf(statusbar, "%s", "Enter your sudoku");
 	// Controls displayed only in this view
-	char* custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
+	const char* custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
 					"1-9 - insert numbers\n"
 					"x or 0 - delete numbers\n"
 					"done - d\n"
 					"go to position - g\n"
 					"quit - q\n";
-	controls = custom_sudoku_controls;
+	controls = (char*)custom_sudoku_controls;
 	// Draw with new controls
 	draw();
 	bool done = false;
@@ -178,7 +178,7 @@ bool own_sudoku_view(){
 		}
 	}
 	// Reset controls
-	controls = controls_default;
+	controls = (char*)controls_default;
 	if(quit)
 		return false;
 	return true;
@@ -200,14 +200,14 @@ bool fileview(){
 	bool own = false;
 	int position = 0;
 
-	char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
+	const char* file_view_controls = "Choose a savegame - move - j and k, d - delete, confirm - y, new file - n, own sudoku - o, quit - q";
 
 	// Choose file by moving cursor
 	while(!chosen && !new_file && !own){
 
 		erase();
 
-		mvprintw(0, 0, file_view_controls);
+		mvprintw(0, 0, "%s", file_view_controls);
 
 		for(int j = 0; j < iterator; j++)
 			mvprintw(j + 2, 0, "  %s\n", items[j]);
@@ -439,7 +439,7 @@ void mainloop(){
 }
 
 int main(int argc, char **argv){
-	controls = controls_default;
+	controls = (char*)controls_default;
 
 	opts = (TSOpts){
 		.gen_visual = false,
