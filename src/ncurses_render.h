@@ -20,13 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern char* statusbar;
+extern char *statusbar;
 extern char highlight;
 
-typedef struct{
-	int y;
-	int x;
-}Cursor;
+typedef struct {
+    int y;
+    int x;
+} Cursor;
 
 extern Cursor cursor;
 
@@ -34,4 +34,4 @@ void init_ncurses();
 void draw();
 void move_cursor_to(int x, int y);
 void move_cursor();
-void generate_visually(char* sudoku_to_display);
+void generate_visually(char *sudoku_to_display);

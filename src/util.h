@@ -21,8 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdbool.h>
 
 void finish(int sig);
-void finish_with_err_msg(char* msg, ...);
+void finish_with_err_msg(char *msg, ...);
 void gen_file_name();
-void listfiles(char* target_dir, char* items[], int* iterator);
+void listfiles(char *target_dir, char *items[], int *iterator);
 bool savestate();
 bool status_bar_confirmation();

@@ -19,113 +19,126 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "util.h"
 
 #include "main.h"
-#include "sudoku.h"
 #include "ncurses_render.h"
+#include "sudoku.h"
 
-#include <stdbool.h>
 #include <curses.h>
-#include <signal.h>
-#include <stdlib.h>
 #include <dirent.h>
+#include <errno.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <errno.h>
 
 // Exit ncurses cleanly
 
-void finish(int sig){
-	endwin();
-	if(sig == SIGSEGV){
-		printf("Segfault\n");
-		exit(1);
-	}
-	exit(0);
+void finish(int sig)
+{
+    endwin();
+    if (sig == SIGSEGV) {
+        printf("Segfault\n");
+        exit(1);
+    }
+    exit(0);
 }
 
-// Takes the same parameters as printf and exits ncurses as well as the application
-void finish_with_err_msg(char* msg, ...){
-	endwin();
+// Takes the same parameters as printf and exits ncurses as well as the
+// application
+void finish_with_err_msg(char *msg, ...)
+{
+    endwin();
 
-	// Send '...'-args to vprintf
-	va_list format;
-	va_start(format, msg);
-	vprintf(msg, format);
-	va_end(format);
+    // Send '...'-args to vprintf
+    va_list format;
+    va_start(format, msg);
+    vprintf(msg, format);
+    va_end(format);
 
-	exit(1);
+    exit(1);
 }
 
-// List files in a directory into items (iterator will be returned as the actual size of items)
-void listfiles(char* target_dir, char* items[], int* iterator){
+// List files in a directory into items (iterator will be returned as the actual
+// size of items)
+void listfiles(char *target_dir, char *items[], int *iterator)
+{
 
-	// Set iterator
-	*iterator = 0;
+    // Set iterator
+    *iterator = 0;
 
-	// Load contents of directory into items
-	DIR *diretory_object;
-	struct dirent *dir;
-	diretory_object = opendir(target_dir);
-	if(diretory_object){
-		while((dir = readdir(diretory_object)) != NULL){
-			if(!(strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0) && strlen(dir->d_name) < STR_LEN){
-				char* new_item = strdup(dir->d_name);
-				items[*iterator] = new_item;
-				*iterator += 1;
-			}
-		}
-		closedir(diretory_object);
-	}else
-		finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n", strerror(errno), target_dir);
+    // Load contents of directory into items
+    DIR *diretory_object;
+    struct dirent *dir;
+    diretory_object = opendir(target_dir);
+    if (diretory_object) {
+        while ((dir = readdir(diretory_object)) != NULL) {
+            if (!(strcmp(dir->d_name, ".") == 0 ||
+                  strcmp(dir->d_name, "..") == 0) &&
+                strlen(dir->d_name) < STR_LEN) {
+                char *new_item = strdup(dir->d_name);
+                items[*iterator] = new_item;
+                *iterator += 1;
+            }
+        }
+        closedir(diretory_object);
+    } else
+        finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n",
+                            strerror(errno), target_dir);
 }
 
 // Write sudoku_str, user_nums and notes to file
-bool savestate(){
-	FILE* savestate = fopen(filename, "w");
+bool savestate()
+{
+    FILE *savestate = fopen(filename, "w");
 
-	if(savestate == NULL)
-		return false;
+    if (savestate == NULL)
+        return false;
 
-	fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
-	for(int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-		fprintf(savestate, "%d", notes[i]);
-	fprintf(savestate, "\n");
-	fclose(savestate);
+    fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
+    for (int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
+        fprintf(savestate, "%d", notes[i]);
+    fprintf(savestate, "\n");
+    fclose(savestate);
 
-	return true;
+    return true;
 }
 
-void gen_file_name(){
-	time_t t = time(NULL);
-	// localtime struct for file name
-	struct tm tm = *localtime(&t);
-	char* filename_no_dir = malloc(27 * sizeof(char));
-	// Generate file name with the current time
-	sprintf(filename_no_dir, "%4d-%02d-%02d-%02d-%02d-%02d%s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ".sudoku");
+void gen_file_name()
+{
+    time_t t = time(NULL);
+    // localtime struct for file name
+    struct tm tm = *localtime(&t);
+    char *filename_no_dir = malloc(27 * sizeof(char));
+    // Generate file name with the current time
+    sprintf(filename_no_dir, "%4d-%02d-%02d-%02d-%02d-%02d%s",
+            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+            tm.tm_sec, ".sudoku");
 
-	sprintf(filename, "%s/%s", target_dir, filename_no_dir);
+    sprintf(filename, "%s/%s", target_dir, filename_no_dir);
 
-	free(filename_no_dir);
+    free(filename_no_dir);
 }
 
 // Ask for confirmation by displaying
-bool status_bar_confirmation(){
-	// Return if the '-c' flag is set (the user does not want to be asked)
-	if(!opts.ask_confirmation)
-		return true;
+bool status_bar_confirmation()
+{
+    // Return if the '-c' flag is set (the user does not want to be asked)
+    if (!opts.ask_confirmation)
+        return true;
 
-	char* statusbar_backup = strdup(statusbar);
+    char *statusbar_backup = strdup(statusbar);
 
-	sprintf(statusbar, "%s", "Sure? y/n");
-	draw();
+    sprintf(statusbar, "%s", "Sure? y/n");
+    draw();
 
-	char confirm = getch();
+    char confirm = getch();
 
-	sprintf(statusbar, "%s", statusbar_backup);
-	free(statusbar_backup);
-	draw();
+    sprintf(statusbar, "%s", statusbar_backup);
+    free(statusbar_backup);
+    draw();
 
-	if(confirm != 'y')
-		return false;
+    if (confirm != 'y')
+        return false;
 
-	return true;
+    return true;
 }
