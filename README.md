@@ -10,11 +10,13 @@ This is a terminal application to play the puzzle game of Sudoku.
 
 ### Build process
 
-`$ make all`
+Install CMake and Make.
 
-Creates a "bin" folder with the binary.
+`$ ./build.sh`
 
-`$ make install`
+Creates a "build" folder with the binary.
+
+`$ make -C build install`
 
 copies that binary to /usr/local/bin.
 
@@ -28,7 +30,7 @@ Install via AUR (substitute paru with an AUR wrapper of your choice)
 
 When you start the program with
 
-`$ make run` or `$ bin/term-sudoku`
+`$ build/term-sudoku`
 
 a sudoku is generated for you (run with '-v' flag to see that process).  Using
 the controls displayed on the screen insert numbers and move around.
@@ -38,7 +40,7 @@ or any directory specified with the '-d' flag.
 
 Continue where you left of by starting with the -f flag
 
-`$ bin/term-sudoku -f`
+`$ build/term-sudoku -f`
 
 and choosing your file.
 

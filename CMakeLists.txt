@@ -10,3 +10,5 @@ file(GLOB SOURCES "${SRC_DIR}/*.c")
 
 add_executable(term-sudoku ${SOURCES})
 target_link_libraries(term-sudoku ncurses)
+
+install(TARGETS term-sudoku)
