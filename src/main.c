@@ -284,7 +284,7 @@ bool fileview()
 
     // Reading the file
     if (chosen) {
-        sprintf(filename, "%s/%s", target_dir, items[position]);
+        snprintf(filename, STR_LEN, "%s/%s", target_dir, items[position]);
 
         for (int j = 0; j < iterator; j++)
             free(items[j]);

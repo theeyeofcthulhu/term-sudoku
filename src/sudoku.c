@@ -39,15 +39,15 @@ int notes[SUDOKU_LEN * LINE_LEN] = {0};
 void solve_count(char *sudoku_to_solve, int *count);
 void remove_nums(char *gen_sudoku);
 bool solve(char *sudoku_str);
-void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku_str);
+void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku);
 
 // Given a cell in a sudoku get the according row, column and block
-void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku_str)
+void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku)
 {
     for (int i = 0; i < LINE_LEN; i++) {
-        out->vert_line[i] = sudoku_str[i * LINE_LEN + (cell % LINE_LEN)];
-        out->hor_line[i] = sudoku_str[(cell / LINE_LEN) * LINE_LEN + i];
-        out->block[i] = sudoku_str[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN +
+        out->vert_line[i] = sudoku[i * LINE_LEN + (cell % LINE_LEN)];
+        out->hor_line[i] = sudoku[(cell / LINE_LEN) * LINE_LEN + i];
+        out->block[i] = sudoku[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN +
                                      (((cell % LINE_LEN) / 3) * 3) +
                                      (LINE_LEN * (i / 3)) + (i % 3)];
     }

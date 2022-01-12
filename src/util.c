@@ -60,7 +60,7 @@ void finish_with_err_msg(char *msg, ...)
 
 // List files in a directory into items (iterator will be returned as the actual
 // size of items)
-void listfiles(char *target_dir, char *items[], int *iterator)
+void listfiles(char *dir_name, char *items[], int *iterator)
 {
 
     // Set iterator
@@ -69,7 +69,7 @@ void listfiles(char *target_dir, char *items[], int *iterator)
     // Load contents of directory into items
     DIR *diretory_object;
     struct dirent *dir;
-    diretory_object = opendir(target_dir);
+    diretory_object = opendir(dir_name);
     if (diretory_object) {
         while ((dir = readdir(diretory_object)) != NULL) {
             if (!(strcmp(dir->d_name, ".") == 0 ||
@@ -83,7 +83,7 @@ void listfiles(char *target_dir, char *items[], int *iterator)
         closedir(diretory_object);
     } else {
         finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n",
-                            strerror(errno), target_dir);
+                            strerror(errno), dir_name);
     }
 }
 
@@ -115,7 +115,7 @@ void gen_file_name()
     char fn[STR_LEN];
     strftime(fn, sizeof(fn), "%Y-%m-%d-%H-%M-%S.sudoku", &tm);
 
-    sprintf(filename, "%s/%s", target_dir, fn);
+    snprintf(filename, STR_LEN, "%s/%s", target_dir, fn);
 }
 
 // Ask for confirmation by displaying
