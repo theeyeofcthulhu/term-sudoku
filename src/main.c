@@ -108,7 +108,7 @@ bool own_sudoku_view()
     // Clear sudoku arrays
     memset(sudoku_str, '0', SUDOKU_LEN);
     memset(user_nums, '0', SUDOKU_LEN);
-    memset(notes, 0, (sizeof(notes) / sizeof(notes[0]) * sizeof(int)));
+    memset(notes, 0, sizeof(notes));
 
     sprintf(statusbar, "%s", "Enter your sudoku");
     // Controls displayed only in this view
@@ -326,8 +326,10 @@ void mainloop()
     cursor.x = cursor.y = 0;
 
     draw();
+
+    bool quit = false;
     // Main loop: wait for keypress, then process it
-    while (true) {
+    while (!quit) {
         int key_press = getch();
         switch (key_press) {
         // Move on vim keys and bind to field size
@@ -418,8 +420,8 @@ void mainloop()
             if (!status_bar_confirmation())
                 break;
 
-            highlight = 0;
-            return;
+            quit = true;
+            break;
         // Input numbers into the user sudoku field
         default:
             // Check if the key is a number (not zero) in aasci chars or 'x' and
@@ -463,6 +465,8 @@ void mainloop()
             break;
         }
     }
+
+    highlight = 0;
 }
 
 int main(int argc, char **argv)

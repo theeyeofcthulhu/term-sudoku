@@ -295,8 +295,6 @@ void solve_count(char *sudoku_to_solve, int *count)
 // Check for errors in the solved sudoku
 bool check_validity(const char *combined_solution)
 {
-    bool is_valid = true;
-
     for (int i = 0; i < SUDOKU_LEN; i++) {
         sudoku_cell_props cell_props;
         get_cell_props(&cell_props, i, combined_solution);
@@ -311,16 +309,13 @@ bool check_validity(const char *combined_solution)
             cur_comp[2] = cell_props.block[j] - 0x30;
 
             for (int k = 0; k < 3; k++) {
-                if (appeared[k][cur_comp[k]] || cur_comp[k] == 0) {
-                    is_valid = false;
-                    goto out_ret_result;
-                }
+                if (appeared[k][cur_comp[k]] || cur_comp[k] == 0)
+                    return false;
 
                 appeared[k][cur_comp[k]] = true;
             }
         }
     }
 
-out_ret_result:
-    return is_valid;
+    return true;
 }

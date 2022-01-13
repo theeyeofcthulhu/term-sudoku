@@ -95,8 +95,9 @@ void draw()
              (control_line = strtok(control_copy_ptr, "\n")) != NULL;
              control_copy_ptr = NULL, string_y++)
             mvaddstr(string_y, string_x, control_line);
-    } else
+    } else {
         mvaddstr(string_y, string_x, controls);
+    }
 
     move_cursor(cursor);
 }

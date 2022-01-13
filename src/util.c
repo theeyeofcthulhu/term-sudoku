@@ -62,7 +62,6 @@ void finish_with_err_msg(char *msg, ...)
 // size of items)
 void listfiles(char *dir_name, char *items[], int *iterator)
 {
-
     // Set iterator
     *iterator = 0;
 
