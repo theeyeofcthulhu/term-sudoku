@@ -18,22 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <stdbool.h>
-
 #include "main.h"
 
-extern char statusbar[STR_LEN];
-extern char highlight;
-
-typedef struct {
+struct Cursor {
     int y;
     int x;
-} Cursor;
+};
 
-extern Cursor cursor;
-
-void init_ncurses();
-void draw();
-void move_cursor_to(int x, int y);
-void move_cursor();
-void generate_visually(char *sudoku_to_display);
+void init_ncurses(void);
+void draw(const struct TSStruct *spec);
+void move_cursor_to(struct Cursor *curs, bool small_mode, int x, int y);
+void move_cursor(struct Cursor *curs, bool small_mode);
+void init_visual_generator(struct TSStruct *spec);
+void generate_visually(const char *sudoku_to_display);

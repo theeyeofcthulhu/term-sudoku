@@ -34,11 +34,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 
-void new_sudoku();
-void input_go_to();
-bool own_sudoku_view();
-bool fileview();
-void mainloop();
+void new_sudoku(struct TSStruct *spec);
+void input_go_to(struct TSStruct *spec);
+bool own_sudoku_view(struct TSStruct *spec);
+bool fileview(struct TSStruct *spec);
+void mainloop(struct TSStruct *spec);
 
 const char *controls_default = "move - h, j, k and l or arrow keys\n"
                                "1-9 - insert numbers\n"
@@ -50,67 +50,69 @@ const char *controls_default = "move - h, j, k and l or arrow keys\n"
                                "go to position - g\n"
                                "highlight number - v\n"
                                "quit - q\n";
-char *controls;
-
 bool editing_notes = false;
 
-char filename[STR_LEN];
 const char *sharepath = ".local/share/term-sudoku";
-char *target_dir;
-
-TSOpts opts;
 
 // Generate a new sudoku for the user to solve
-void new_sudoku()
+void new_sudoku(struct TSStruct *spec)
 {
-    gen_file_name();
+    struct TSOpts *opts = spec->opts;
+    struct SudokuSpec *sudoku = spec->sudoku;
+
+    gen_file_name(opts->filename, sizeof(opts->filename), opts->dir);
 
     // Clear sudoku arrays
-    memset(sudoku_str, '0', SUDOKU_LEN);
-    memset(user_nums, '0', SUDOKU_LEN);
-    memset(notes, 0, (sizeof(notes) / sizeof(notes[0]) * sizeof(int)));
+    memset(sudoku->sudoku,  '0',    sizeof(sudoku->sudoku));
+    memset(sudoku->user,    '0',    sizeof(sudoku->user));
+    memset(sudoku->notes,    0,     sizeof(sudoku->notes));
 
     // Generate the sudoku
-    generate_sudoku(sudoku_str);
+    generate_sudoku(sudoku->sudoku, opts);
 
-    sprintf(statusbar, "%s", "Sudoku generated");
+    sprintf(spec->statusbar, "%s", "Sudoku generated");
 }
 
 // Ask for position (getch()) and go there
-void input_go_to()
+void input_go_to(struct TSStruct *spec)
 {
     int move_to[2] = {0, 0};
 
-    sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-    draw();
+    sprintf(spec->statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+    draw(spec);
 
     for (int i = 0; i < 2; i++) {
         char c_pos = getch();
-        move_to[i] = strtol(&c_pos, NULL, 10);
+        // TODO: CHAR_TO_NUM macro or something similar
+        move_to[i] = c_pos - 0x30;
         if (move_to[i] <= 0 || move_to[i] > 9) {
-            sprintf(statusbar, "%s", "Cancelled");
-            draw();
+            sprintf(spec->statusbar, "%s", "Cancelled");
+            draw(spec);
             return;
         }
 
-        sprintf(statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
-        draw();
+        sprintf(spec->statusbar, "Move to: %d, %d", move_to[0], move_to[1]);
+        draw(spec);
     }
-    move_cursor_to(move_to[0] - 1, move_to[1] - 1);
+    move_cursor_to(spec->cursor, spec->opts->small_mode, move_to[0] - 1, move_to[1] - 1);
 }
 
-bool own_sudoku_view()
+bool own_sudoku_view(struct TSStruct *spec)
 {
-    cursor.x = cursor.y = 0;
+    spec->cursor->x = spec->cursor->y = 0;
 
-    gen_file_name();
+    struct TSOpts *opts = spec->opts;
+    struct SudokuSpec *sudoku = spec->sudoku;
+    struct Cursor *curs = spec->cursor;
+
+    gen_file_name(opts->filename, sizeof(opts->filename), opts->dir);
 
     // Clear sudoku arrays
-    memset(sudoku_str, '0', SUDOKU_LEN);
-    memset(user_nums, '0', SUDOKU_LEN);
-    memset(notes, 0, sizeof(notes));
+    memset(sudoku->sudoku, '0', SUDOKU_LEN);
+    memset(sudoku->user, '0', SUDOKU_LEN);
+    memset(sudoku->notes, 0, sizeof(sudoku->notes));
 
-    sprintf(statusbar, "%s", "Enter your sudoku");
+    sprintf(spec->statusbar, "%s", "Enter your sudoku");
     // Controls displayed only in this view
     const char *custom_sudoku_controls = "move - h, j, k and l or arrow keys\n"
                                          "1-9 - insert numbers\n"
@@ -118,9 +120,9 @@ bool own_sudoku_view()
                                          "done - d\n"
                                          "go to position - g\n"
                                          "quit - q\n";
-    controls = (char *)custom_sudoku_controls;
+    spec->controls = (char *)custom_sudoku_controls;
     // Draw with new controls
-    draw();
+    draw(spec);
     bool done = false;
     bool quit = false;
 
@@ -131,36 +133,33 @@ bool own_sudoku_view()
         switch (key_press) {
         case KEY_LEFT:
         case 'h':
-            cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-            move_cursor();
-            break;
+            curs->x = curs->x - 1 < 0 ? curs->x : curs->x - 1;
+            goto move;
         case KEY_DOWN:
         case 'j':
-            cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1;
-            move_cursor();
-            break;
+            curs->y = curs->y + 1 >= LINE_LEN ? curs->y : curs->y + 1;
+            goto move;
         case KEY_UP:
         case 'k':
-            cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-            move_cursor();
-            break;
+            curs->y = curs->y - 1 < 0 ? curs->y : curs->y - 1;
+            goto move;
         case KEY_RIGHT:
         case 'l':
-            cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1;
-            move_cursor();
+            curs->x = curs->x + 1 >= LINE_LEN ? curs->x : curs->x + 1;
+            goto move;
+        move:
+            move_cursor(curs, opts->small_mode);
             break;
         case 'd':
-            if (!status_bar_confirmation())
-                break;
+            if (!status_bar_confirmation(spec)) break;
 
-            sprintf(statusbar, "Sudoku entered");
             done = true;
             break;
         case 'g':
-            input_go_to();
+            input_go_to(spec);
             break;
         case 'q':
-            if (!status_bar_confirmation())
+            if (!status_bar_confirmation(spec))
                 break;
 
             quit = true;
@@ -172,35 +171,35 @@ bool own_sudoku_view()
 
             // check for numbers
             if (key_press >= '1' && key_press <= '9' &&
-                sudoku_str[cursor.y * LINE_LEN + cursor.x] != key_press) {
-                sudoku_str[cursor.y * LINE_LEN + cursor.x] = key_press;
-                draw();
+                sudoku->sudoku[curs->y * LINE_LEN + curs->x] != key_press) {
+                sudoku->sudoku[curs->y * LINE_LEN + curs->x] = key_press;
+                draw(spec);
             }
             // check for x
             else if ((key_press == 'x' || key_press == '0') &&
-                     sudoku_str[cursor.y * LINE_LEN + cursor.x] != '0') {
-                sudoku_str[cursor.y * LINE_LEN + cursor.x] = '0';
-                draw();
+                     sudoku->sudoku[curs->y * LINE_LEN + curs->x] != '0') {
+                sudoku->sudoku[curs->y * LINE_LEN + curs->x] = '0';
+                draw(spec);
             }
             break;
         }
     }
     // Reset controls
-    controls = (char *)controls_default;
-    if (quit)
-        return false;
-    return true;
+    spec->controls = (char *)controls_default;
+    sprintf(spec->statusbar, "Sudoku entered");
+
+    return !quit;
 }
 
-bool fileview()
+bool fileview(struct TSStruct *spec)
 {
     // Array of strings (in this case: directories)
     char *items[STR_LEN];
     // Holds the size of 'items'
-    int iterator = 0;
+    int iterator;
 
     // Load files in directory into items
-    listfiles(target_dir, items, &iterator);
+    listfiles(spec->opts->dir, items, &iterator);
 
     curs_set(0);
 
@@ -215,7 +214,6 @@ bool fileview()
 
     // Choose file by moving cursor
     while (!chosen && !new_file && !own) {
-
         erase();
 
         mvprintw(0, 0, "%s", file_view_controls);
@@ -248,15 +246,18 @@ bool fileview()
         // Delete selected file and re-read files
         case 'd':
         {
+            if(iterator <= 0)
+                break;
+
             char temp_file[STR_LEN];
-            snprintf(temp_file, STR_LEN, "%s/%s", target_dir, items[position]);
+            snprintf(temp_file, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
             if (remove(temp_file) == -1) {
                 finish_with_err_msg("Error: '%s' when trying to remove '%s'\n",
                                     strerror(errno), temp_file);
             }
             for (int j = 0; j < iterator; j++)
                 free(items[j]);
-            listfiles(target_dir, items, &iterator);
+            listfiles(spec->opts->dir, items, &iterator);
             break;
         }
         case 'q':
@@ -276,42 +277,44 @@ bool fileview()
             else if (position < 0)
                 position = iterator - 1;
             // Keep position 0 if no files are available
-        } else
+        } else {
             position = 0;
+        }
     }
 
     curs_set(1);
 
     // Reading the file
     if (chosen) {
-        snprintf(filename, STR_LEN, "%s/%s", target_dir, items[position]);
+        snprintf(spec->opts->filename, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
 
         for (int j = 0; j < iterator; j++)
             free(items[j]);
 
         // Read Sudoku from given file
-        FILE *input_file = fopen(filename, "r");
-        if (input_file == NULL)
+        FILE *input_file = fopen(spec->opts->filename, "r");
+        if (input_file == NULL) {
             finish_with_err_msg("Error: '%s' when trying to access file '%s'\n",
-                                strerror(errno), filename);
+                                strerror(errno), spec->opts->filename);
+        }
 
         // Scan in the first two lines which are the puzzle and the entered
         // user_nums
-        fscanf(input_file, "%s\n%s\n", sudoku_str, user_nums);
+        fscanf(input_file, "%s\n%s\n", spec->sudoku->sudoku, spec->sudoku->user);
         // Read in notes into the array
         for (int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-            fscanf(input_file, "%1d", &notes[i]);
+            fscanf(input_file, "%1d", &spec->sudoku->notes[i]);
         fclose(input_file);
 
-        sprintf(statusbar, "%s", "File opened");
+        sprintf(spec->statusbar, "%s", "File opened");
 
-        mainloop();
+        mainloop(spec);
     } else if (own) {
-        if (own_sudoku_view())
-            mainloop();
+        if (own_sudoku_view(spec))
+            mainloop(spec);
     } else if (new_file) {
-        new_sudoku();
-        mainloop();
+        new_sudoku(spec);
+        mainloop(spec);
     }
 
     return true;
@@ -321,11 +324,15 @@ bool fileview()
 ** Draws the sudoku and processes input relating to modifying the sudoku,
 *changing something about the rendering or moving the cursor
 */
-void mainloop()
+void mainloop(struct TSStruct *spec)
 {
-    cursor.x = cursor.y = 0;
+    struct TSOpts *opts = spec->opts;
+    struct SudokuSpec *sudoku = spec->sudoku;
+    struct Cursor *curs = spec->cursor;
 
-    draw();
+    curs->x = curs->y = 0;
+
+    draw(spec);
 
     bool quit = false;
     // Main loop: wait for keypress, then process it
@@ -335,32 +342,31 @@ void mainloop()
         // Move on vim keys and bind to field size
         case KEY_LEFT:
         case 'h':
-            cursor.x = cursor.x - 1 < 0 ? cursor.x : cursor.x - 1;
-            move_cursor();
-            break;
+            curs->x = curs->x - 1 < 0 ? curs->x : curs->x - 1;
+            goto move;
         case KEY_DOWN:
         case 'j':
-            cursor.y = cursor.y + 1 >= LINE_LEN ? cursor.y : cursor.y + 1;
-            move_cursor();
-            break;
+            curs->y = curs->y + 1 >= LINE_LEN ? curs->y : curs->y + 1;
+            goto move;
         case KEY_UP:
         case 'k':
-            cursor.y = cursor.y - 1 < 0 ? cursor.y : cursor.y - 1;
-            move_cursor();
-            break;
+            curs->y = curs->y - 1 < 0 ? curs->y : curs->y - 1;
+            goto move;
         case KEY_RIGHT:
         case 'l':
-            cursor.x = cursor.x + 1 >= LINE_LEN ? cursor.x : cursor.x + 1;
-            move_cursor();
+            curs->x = curs->x + 1 >= LINE_LEN ? curs->x : curs->x + 1;
+            goto move;
+        move:
+            move_cursor(curs, opts->small_mode);
             break;
         // Save file and handle errors
         case 's':
-            if (!savestate())
-                sprintf(statusbar, "Error: '%s'\n", strerror(errno));
+            if (!savestate(opts->filename, sudoku))
+                sprintf(spec->statusbar, "Error: '%s'\n", strerror(errno));
             else
-                sprintf(statusbar, "%s", "Saved");
+                sprintf(spec->statusbar, "%s", "Saved");
 
-            draw();
+            draw(spec);
 
             break;
         // Check for errors and write result to statusbar
@@ -369,55 +375,64 @@ void mainloop()
             char combined_solution[SUDOKU_LEN];
             for (int i = 0; i < SUDOKU_LEN; i++) {
                 combined_solution[i] =
-                    sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
+                    sudoku->sudoku[i] == '0' ? sudoku->user[i] : sudoku->sudoku[i];
             }
 
             if (check_validity(combined_solution))
-                sprintf(statusbar, "%s", "Valid");
+                sprintf(spec->statusbar, "%s", "Valid");
             else
-                sprintf(statusbar, "%s", "Invalid or not filled out");
+                sprintf(spec->statusbar, "%s", "Invalid or not filled out");
 
-            draw();
+            draw(spec);
             break;
         }
         // Fill out sudoku; ask for confirmation first
         case 'd':
-            if (!status_bar_confirmation())
+            if (!status_bar_confirmation(spec))
                 break;
 
-            solve_user_nums();
-            draw();
+            char combined_solution[SUDOKU_LEN];
+            for (int i = 0; i < SUDOKU_LEN; i++) {
+                combined_solution[i] =
+                    sudoku->sudoku[i] == '0' ? sudoku->user[i] : sudoku->sudoku[i];
+            }
+
+            solve(combined_solution, false);
+            memcpy(sudoku->user, combined_solution, SUDOKU_LEN);
+
+            draw(spec);
             break;
         // Enter edit mode
         case 'e':
-            if (opts.small_mode)
+            if (opts->small_mode)
                 break;
             editing_notes = !editing_notes;
             char *mode = editing_notes ? "Note" : "Normal";
-            sprintf(statusbar, "%s %s", mode, "Mode");
+            sprintf(spec->statusbar, "%s %s", mode, "Mode");
 
-            draw();
+            draw(spec);
             break;
         case 'g':
-            input_go_to();
+            input_go_to(spec);
             break;
         case 'v':
         {
-            sprintf(statusbar, "%s", "Highlight:");
-            draw();
+            sprintf(spec->statusbar, "%s", "Highlight:");
+            draw(spec);
 
-            highlight = getch();
-            if (highlight < '1' || highlight > '9') {
-                sprintf(statusbar, "%s", "Cancelled");
-            } else
-                sprintf(statusbar, "%s%c", "Highlight: ", highlight);
+            spec->highlight = getch();
+            if (spec->highlight < '1' || spec->highlight > '9') {
+                sprintf(spec->statusbar, "%s", "Cancelled");
+            } else {
+                sprintf(spec->statusbar, "%s%c", "Highlight: ", spec->highlight);
+            }
 
-            draw();
+            draw(spec);
             break;
         }
         // Exit; ask for confirmation
         case 'q':
-            if (!status_bar_confirmation())
+            if (!status_bar_confirmation(spec))
                 break;
 
             quit = true;
@@ -428,56 +443,53 @@ void mainloop()
             // if the cursor is not an a field filled by the puzzle
 
             // Check if the field is empty in the puzzle
-            if (sudoku_str[cursor.y * LINE_LEN + cursor.x] == '0') {
+            if (sudoku->sudoku[curs->y * LINE_LEN + curs->x] == '0') {
                 // Toggle the note fields (if in note mode)
                 if (editing_notes) {
                     if (key_press >= '1' && key_press <= '9') {
                         // Access cursor location in array and add key_press for
                         // appropriate number
-                        int *target = &notes[((cursor.y * LINE_LEN * LINE_LEN) +
-                                              (cursor.x * LINE_LEN)) +
-                                             (key_press - '1')];
+                        int *target = &sudoku->notes[((curs->y * LINE_LEN * LINE_LEN) +
+                                                     (curs->x * LINE_LEN)) +
+                                                     (key_press - '1')];
                         *target = !*target;
-                        draw();
+                        draw(spec);
                     }
                     // Check for numbers and place the number in user_nums
                 } else if (key_press >= '1' && key_press <= '9' &&
-                           user_nums[cursor.y * LINE_LEN + cursor.x] !=
+                           sudoku->user[curs->y * LINE_LEN + curs->x] !=
                                key_press) {
-                    user_nums[cursor.y * LINE_LEN + cursor.x] = key_press;
+                    sudoku->user[curs->y * LINE_LEN + curs->x] = key_press;
                     // Clear notes off of target cell
                     for (int i = 0; i < LINE_LEN; i++) {
-                        int *target = &notes[((cursor.y * LINE_LEN * LINE_LEN) +
-                                              (cursor.x * LINE_LEN)) +
-                                             i];
+                        int *target = &sudoku->notes[((curs->y * LINE_LEN * LINE_LEN) +
+                                                     (curs->x * LINE_LEN)) + i];
                         *target = 0;
                     }
-                    draw();
+                    draw(spec);
                 }
                 // Check for x and clear the number (same as pressing space in
                 // the above conditional)
                 else if ((key_press == 'x' || key_press == '0') &&
-                         user_nums[cursor.y * LINE_LEN + cursor.x] != '0') {
-                    user_nums[cursor.y * LINE_LEN + cursor.x] = '0';
-                    draw();
+                         sudoku->user[curs->y * LINE_LEN + curs->x] != '0') {
+                    sudoku->user[curs->y * LINE_LEN + curs->x] = '0';
+                    draw(spec);
                 }
             }
             break;
         }
     }
 
-    highlight = 0;
+    spec->highlight = 0;
 }
 
 int main(int argc, char **argv)
 {
-    controls = (char *)controls_default;
-
-    opts = (TSOpts){
+    struct TSOpts opts = {
         .gen_visual = false,
         .own_sudoku = false,
         .attempts = ATTEMPTS_DEFAULT,
-        .custom_dir = NULL,
+        .dir = NULL,
         .from_file = false,
         .ask_confirmation = true,
         .small_mode = false,
@@ -503,7 +515,7 @@ int main(int argc, char **argv)
                    "-n: NUMBER: numbers to try and remove (default: %d)\n\n"
                    "controls:\n"
                    "%s",
-                   ATTEMPTS_DEFAULT, controls);
+                   ATTEMPTS_DEFAULT, controls_default);
             return 0;
         case 'v':
             opts.gen_visual = true;
@@ -513,11 +525,11 @@ int main(int argc, char **argv)
             break;
         case 'n':
             opts.attempts = strtol(optarg, NULL, 10);
-            if (opts.attempts <= 0 || opts.attempts >= SUDOKU_LEN)
+            if (opts.attempts <= 0)
                 opts.attempts = ATTEMPTS_DEFAULT;
             break;
         case 'd':
-            opts.custom_dir = optarg;
+            opts.dir = optarg;
             break;
         case 'f':
             opts.from_file = true;
@@ -542,7 +554,8 @@ int main(int argc, char **argv)
     srand(time(NULL));
 
     // Set dir as $HOME/.local/share
-    if (opts.custom_dir == NULL) {
+    if (opts.dir == NULL) {
+        char *target_dir;
         char *home_dir;
         // Get user home directory
         struct passwd *pw = getpwuid(getuid());
@@ -561,35 +574,47 @@ int main(int argc, char **argv)
                     strerror(errno), target_dir);
             }
         }
-        // Use a custom directory specified in '-d'
-    } else {
-        target_dir = opts.custom_dir;
+        opts.dir = target_dir;
     }
 
-    memset(sudoku_str, '0', SUDOKU_LEN);
-    memset(user_nums, '0', SUDOKU_LEN);
+    struct SudokuSpec sudoku;
+    struct Cursor cursor;
+
+    struct TSStruct spec = {
+        .opts = &opts,
+        .sudoku = &sudoku,
+        .cursor = &cursor,
+        .highlight = 0,
+        .controls = (char *)controls_default,
+    };
+    memset(spec.statusbar, '\0', sizeof(spec.statusbar));
+
+    spec.opts = &opts;
+    spec.sudoku = &sudoku;
+    spec.cursor = &cursor;
 
     // ncurses intializer functions
     init_ncurses();
+
+    if (opts.gen_visual)
+        init_visual_generator(&spec);
 
     // List files and open selected file or create a new file or enter your own
     // sudoku
     if (opts.from_file) {
         // Run fileview()(which runs new_sudoku(), fileview() and mainloop()
         // depending on input) until it returns false
-        while (fileview())
+        while (fileview(&spec))
             ;
-        finish(0);
     }
     // User enters a new sudoku and edits it in mainloop() if successful
     else if (opts.own_sudoku) {
-        if (own_sudoku_view())
-            mainloop();
-        finish(0);
+        if (own_sudoku_view(&spec))
+            mainloop(&spec);
         // Not own_sudoku nor from_file: generate new sudoku
     } else {
-        new_sudoku();
-        mainloop();
-        finish(0);
+        new_sudoku(&spec);
+        mainloop(&spec);
     }
+    finish(0);
 }

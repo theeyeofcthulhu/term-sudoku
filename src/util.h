@@ -19,10 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
+
+struct SudokuSpec;
+struct TSStruct;
 
 void finish(int sig);
-void finish_with_err_msg(char *msg, ...);
-void gen_file_name();
-void listfiles(char *target_dir, char *items[], int *iterator);
-bool savestate();
-bool status_bar_confirmation();
+void finish_with_err_msg(const char *msg, ...);
+void gen_file_name(char *filename, size_t sz, char *dir);
+void listfiles(const char *dir_name, char *items[], int *iterator);
+bool savestate(const char *filename, const struct SudokuSpec *spec);
+bool status_bar_confirmation(struct TSStruct *spec);

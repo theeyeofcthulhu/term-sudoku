@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "sudoku.h"
 #include "util.h"
 
+#include <assert.h>
 #include <curses.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -32,14 +33,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define VISUAL_SLEEP 10000000
 const struct timespec sleep_request = {0, VISUAL_SLEEP};
 
-char statusbar[STR_LEN];
-char highlight = '0';
-Cursor cursor;
+void draw_sudokus(const struct TSStruct *spec);
+void read_notes(const struct SudokuSpec *spec);
+void draw_border(bool small_mode);
+void read_sudoku(const struct TSStruct *spec, const char *sudoku, int color_mode, int color_mode_highlight);
 
-void draw_sudokus();
-void read_notes();
-void draw_border();
-void read_sudoku(char *sudoku, int color_mode, int color_mode_highlight);
+static struct TSStruct *vis_gen_spec;
 
 // curses init logic
 void init_ncurses()
@@ -67,26 +66,26 @@ void init_ncurses()
 
 #define CONTROL_BUF_SZ 256
 // Draws everything
-void draw()
+void draw(const struct TSStruct *spec)
 {
     erase();
-    if (!opts.small_mode)
-        read_notes(notes);
-    draw_sudokus(sudoku_str, user_nums);
+    if (!spec->opts->small_mode)
+        read_notes(spec->sudoku);
+    draw_sudokus(spec);
 
     int string_y =
-        opts.small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : PUZZLE_OFFSET;
-    int string_x = opts.small_mode ? 0 : (LINE_LEN * 4) + 3 + PUZZLE_OFFSET;
+        spec->opts->small_mode ? LINE_LEN + 5 + PUZZLE_OFFSET : PUZZLE_OFFSET;
+    int string_x = spec->opts->small_mode ? 0 : (LINE_LEN * 4) + 3 + PUZZLE_OFFSET;
 
-    mvaddstr(string_y, string_x, statusbar);
+    mvaddstr(string_y, string_x, spec->statusbar);
     string_y += 2;
 
     // Split controls by '\n' characters to draw everything to the right of the
     // puzzle when in big mode. This has to be done because when drawing the
     // whole string, only the first line is transposed to string_x.
-    if (!opts.small_mode) {
+    if (!spec->opts->small_mode) {
         static char control_copy[CONTROL_BUF_SZ];
-        strcpy(control_copy, controls);
+        strcpy(control_copy, spec->controls);
 
         char *control_line;
         // control_copy_ptr becomes NULL after first iteration since every call
@@ -96,18 +95,25 @@ void draw()
              control_copy_ptr = NULL, string_y++)
             mvaddstr(string_y, string_x, control_line);
     } else {
-        mvaddstr(string_y, string_x, controls);
+        mvaddstr(string_y, string_x, spec->controls);
     }
 
-    move_cursor(cursor);
+    move_cursor(spec->cursor, spec->opts->small_mode);
+}
+
+void init_visual_generator(struct TSStruct *spec)
+{
+    vis_gen_spec = spec;
 }
 
 // For -v flag: show the generating process
-void generate_visually(char *sudoku_to_display)
+void generate_visually(const char *sudoku_to_display)
 {
+    assert(vis_gen_spec != NULL);
+
     erase();
-    draw_border();
-    read_sudoku(sudoku_to_display, 1, 4);
+    draw_border(vis_gen_spec->opts->small_mode);
+    read_sudoku(vis_gen_spec, sudoku_to_display, 1, 4);
     refresh();
     nanosleep(&sleep_request, NULL);
 }
@@ -115,9 +121,9 @@ void generate_visually(char *sudoku_to_display)
 // Draws the 'skeleton' of the sudoku:
 // Number indicators on the sides, borders for large and small mode,
 // different colors for indicating which is a block border
-void draw_border()
+void draw_border(bool small_mode)
 {
-    if (!opts.small_mode) {
+    if (!small_mode) {
         for (int y = 0; y < LINE_LEN + 1; y++) {
             // On every third vertical line, add colored seperator
             if (y % 3 == 0)
@@ -180,10 +186,10 @@ void draw_border()
 }
 
 // Read Sudoku to screen, respecting borders, etc.
-void read_sudoku(char *sudoku, int color_mode, int color_mode_highlight)
+void read_sudoku(const struct TSStruct *spec, const char *sudoku, int color_mode, int color_mode_highlight)
 {
     attron(COLOR_PAIR(color_mode));
-    if (!opts.small_mode) {
+    if (!spec->opts->small_mode) {
         // Offset for counting in seperators when drawing numbers
         int yoff = PUZZLE_OFFSET;
         for (int y = 0; y < LINE_LEN; y++) {
@@ -199,12 +205,13 @@ void read_sudoku(char *sudoku, int color_mode, int color_mode_highlight)
                 char current_digit = sudoku[y * LINE_LEN + x];
                 // Draw everything except zeros
                 if (current_digit != '0') {
-                    if (current_digit == highlight) {
+                    if (current_digit == spec->highlight) {
                         attron(COLOR_PAIR(color_mode_highlight));
                         addch(current_digit);
                         attron(COLOR_PAIR(color_mode));
-                    } else
+                    } else {
                         addch(current_digit);
+                    }
                 }
             }
         }
@@ -229,12 +236,13 @@ void read_sudoku(char *sudoku, int color_mode, int color_mode_highlight)
                 char current_digit = sudoku[y * LINE_LEN + x];
                 // Draw everything except zeros
                 if (current_digit != '0') {
-                    if (current_digit == highlight) {
+                    if (current_digit == spec->highlight) {
                         attron(COLOR_PAIR(color_mode_highlight));
                         addch(current_digit);
                         attron(COLOR_PAIR(color_mode));
-                    } else
+                    } else {
                         addch(current_digit);
+                    }
                 }
             }
         }
@@ -242,12 +250,12 @@ void read_sudoku(char *sudoku, int color_mode, int color_mode_highlight)
 }
 
 // Read the notes (nine switches for every cell) onto the screen
-void read_notes()
+void read_notes(const struct SudokuSpec *spec)
 {
     attron(COLOR_PAIR(3));
     for (int i = 0; i < SUDOKU_LEN; i++) {
         for (int j = 0; j < LINE_LEN; j++) {
-            if (notes[i * LINE_LEN + j])
+            if (spec->notes[i * LINE_LEN + j])
                 // Move into position for the note
                 mvaddch(((i / LINE_LEN) * 4) + 1 + PUZZLE_OFFSET +
                             (j / (LINE_LEN / 3)),
@@ -259,37 +267,39 @@ void read_notes()
 }
 
 // Move cursor but don't get into the seperators
-void move_cursor_to(int x, int y)
+void move_cursor_to(struct Cursor *curs, bool small_mode, int x, int y)
 {
-    cursor.x = x;
-    cursor.y = y;
-    if (opts.small_mode)
-        move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET,
-             cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
-    else
-        move((cursor.y * 4) + 2 + PUZZLE_OFFSET,
-             (cursor.x * 4) + 2 + PUZZLE_OFFSET);
+    curs->x = x;
+    curs->y = y;
+    if (small_mode) {
+        move(curs->y + (curs->y / 3) + 1 + PUZZLE_OFFSET,
+             curs->x + (curs->x / 3) + 1 + PUZZLE_OFFSET);
+    } else {
+        move((curs->y * 4) + 2 + PUZZLE_OFFSET,
+             (curs->x * 4) + 2 + PUZZLE_OFFSET);
+    }
 }
 
 // Move cursor but don't get into the seperators
-void move_cursor()
+void move_cursor(struct Cursor *curs, bool small_mode)
 {
-    if (opts.small_mode)
-        move(cursor.y + (cursor.y / 3) + 1 + PUZZLE_OFFSET,
-             cursor.x + (cursor.x / 3) + 1 + PUZZLE_OFFSET);
-    else
-        move((cursor.y * 4) + 2 + PUZZLE_OFFSET,
-             (cursor.x * 4) + 2 + PUZZLE_OFFSET);
+    if (small_mode) {
+        move(curs->y + (curs->y / 3) + 1 + PUZZLE_OFFSET,
+             curs->x + (curs->x / 3) + 1 + PUZZLE_OFFSET);
+    } else {
+        move((curs->y * 4) + 2 + PUZZLE_OFFSET,
+             (curs->x * 4) + 2 + PUZZLE_OFFSET);
+    }
 }
 
 // Draw user numbers and the given sudoku in different colors
 // Draw the user numbers under the given sudoku so the latter can't be
 // overwritten
-void draw_sudokus()
+void draw_sudokus(const struct TSStruct *spec)
 {
-    draw_border();
+    draw_border(spec->opts->small_mode);
 
-    read_sudoku(user_nums, 2, 5);
+    read_sudoku(spec, spec->sudoku->user, 2, 5);
 
-    read_sudoku(sudoku_str, 1, 4);
+    read_sudoku(spec, spec->sudoku->sudoku, 1, 4);
 }

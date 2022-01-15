@@ -32,13 +32,8 @@ typedef struct {
     char block[LINE_LEN];
 } sudoku_cell_props;
 
-char user_nums[SUDOKU_LEN];
-char sudoku_str[SUDOKU_LEN];
-int notes[SUDOKU_LEN * LINE_LEN] = {0};
-
 void solve_count(char *sudoku_to_solve, int *count);
-void remove_nums(char *gen_sudoku);
-bool solve(char *sudoku_str);
+void remove_nums(char *gen_sudoku, const struct TSOpts *opts);
 void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku);
 
 // Given a cell in a sudoku get the according row, column and block
@@ -57,9 +52,9 @@ void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku)
 // This function generates the diagonal blocks from left to right and then calls
 // solve() and remove_nums() to first fill out and then remove some numbers to
 // create a complete puzzle
-void generate_sudoku(char *gen_sudoku)
+void generate_sudoku(char *gen_sudoku, const struct TSOpts *opts)
 {
-    if (opts.gen_visual)
+    if (opts->gen_visual)
         curs_set(0);
     // Fill each diagonal block with the values 1-9
     /* [x][ ][ ]
@@ -88,25 +83,25 @@ void generate_sudoku(char *gen_sudoku)
             }
             // Draw the process of filling out the sudoku visually on the screen
             // if that option is set via '-v'
-            if (opts.gen_visual) {
+            if (opts->gen_visual) {
                 generate_visually(gen_sudoku);
             }
         }
     }
 
     // Solve the remaining blocks
-    solve(gen_sudoku);
+    solve(gen_sudoku, opts->gen_visual);
     // Remove numbers but maintain unique solution
-    remove_nums(gen_sudoku);
+    remove_nums(gen_sudoku, opts);
 
-    if (opts.gen_visual)
+    if (opts->gen_visual)
         curs_set(1);
 }
 
 // Try and remove numbers until the solution is not unique
-void remove_nums(char *gen_sudoku)
+void remove_nums(char *gen_sudoku, const struct TSOpts *opts)
 {
-    int local_attempts = opts.attempts;
+    int local_attempts = opts->attempts;
     // Run down the attempts defined with '-n'
     while (local_attempts > 0) {
         // Get non-empty cell
@@ -120,77 +115,31 @@ void remove_nums(char *gen_sudoku)
 
         // Generate a copy of the sudoku and count how many solutions it has
         char sudoku_cpy[SUDOKU_LEN];
-        strcpy(sudoku_cpy, gen_sudoku);
+        memcpy(sudoku_cpy, gen_sudoku, SUDOKU_LEN);
 
         sudoku_cpy[cell] = '0';
         int count = 0;
         solve_count(sudoku_cpy, &count);
 
         // If unique, apply to real sudoku
-        if (count == 1)
+        if (count == 1) {
             gen_sudoku[cell] = '0';
+            if (opts->gen_visual)
+                generate_visually(gen_sudoku);
+        }
         // Else, burn an attempt
-        else
+        else {
             local_attempts--;
-    }
-}
-
-// Solve the sudoku on screen (fill in user_nums)
-bool solve_user_nums()
-{
-    // Combine entered numbers and puzzle to check if it is correct
-    char combined_solution[SUDOKU_LEN];
-    for (int i = 0; i < SUDOKU_LEN; i++) {
-        combined_solution[i] =
-            sudoku_str[i] == '0' ? user_nums[i] : sudoku_str[i];
-    }
-
-    // Return true if the sudoku is already valid
-    if (check_validity(combined_solution)) {
-        return true;
-    }
-
-    for (int i = 0; i < SUDOKU_LEN; i++) {
-        if (combined_solution[i] == '0') {
-            // Get the fields associated with the value at i
-            sudoku_cell_props cell_props;
-            get_cell_props(&cell_props, i, combined_solution);
-
-            // Try to assign a value to the cell at i
-            for (int j = '1'; j <= '9'; j++) {
-                bool used = false;
-                for (int k = 0; k < LINE_LEN; k++) {
-                    // Check if the value is valid
-                    if (cell_props.vert_line[k] == j ||
-                        cell_props.hor_line[k] == j || cell_props.block[k] == j)
-                        used = true;
-                }
-                // Try to recursively solve
-                if (!used) {
-                    user_nums[i] = j;
-                    // Check the whole path
-                    if (solve_user_nums()) {
-                        return true;
-                    }
-
-                    // Otherwise, go back to 0
-                    user_nums[i] = '0';
-                }
-            }
-
-            break;
         }
     }
-    // Return false if no solution is found
-    return false;
 }
 
 // Solve a sudoku (used in generating)
-bool solve(char *sudoku_to_solve)
+bool solve(char *sudoku_to_solve, bool visual)
 {
     // Draw the process of filling out the sudoku visually on the screen if that
     // option is set via '-v'
-    if (opts.gen_visual)
+    if (visual)
         generate_visually(sudoku_to_solve);
 
     // If sudoku is valid, return
@@ -215,7 +164,7 @@ bool solve(char *sudoku_to_solve)
                 if (!used) {
                     sudoku_to_solve[i] = j;
                     // Check the whole path
-                    if (solve(sudoku_to_solve)) {
+                    if (solve(sudoku_to_solve, visual)) {
                         return true;
                     }
 
@@ -235,16 +184,10 @@ bool solve(char *sudoku_to_solve)
 // solution
 void solve_count(char *sudoku_to_solve, int *count)
 {
-
     // Function only needs to check if there is more than one unique
     // solution, so return if there is
     if (*count > 1)
         return;
-
-    // Draw the process of filling out the sudoku visually on the screen if that
-    // option is set via '-v'
-    if (opts.gen_visual)
-        generate_visually(sudoku_to_solve);
 
     // find empty cell
     for (int i = 0; i < SUDOKU_LEN; i++) {
@@ -285,8 +228,6 @@ void solve_count(char *sudoku_to_solve, int *count)
             break;
         }
     }
-
-    return;
 }
 
 // TODO: remove overhead from checking lines multiple times

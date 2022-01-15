@@ -26,18 +26,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-typedef struct {
+struct TSOpts{
     bool gen_visual;
     bool own_sudoku;
     int attempts;
-    char *custom_dir;
+    char *dir;
     bool from_file;
     bool ask_confirmation;
     bool small_mode;
-} TSOpts;
+    char filename[STR_LEN];
+};
 
-extern TSOpts opts;
+struct TSStruct {
+    char *controls;
+    char statusbar[STR_LEN];
+    int highlight;
+    struct SudokuSpec *sudoku;
+    struct TSOpts *opts;
+    struct Cursor *cursor;
+};
 
-extern char *controls;
-extern char *target_dir;
-extern char filename[STR_LEN];

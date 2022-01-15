@@ -22,10 +22,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
-extern char user_nums[SUDOKU_LEN];
-extern char sudoku_str[SUDOKU_LEN];
-extern int notes[SUDOKU_LEN * LINE_LEN];
+struct SudokuSpec {
+    char sudoku[SUDOKU_LEN];
+    char user[SUDOKU_LEN];
+    int notes[SUDOKU_LEN * LINE_LEN];
+};
 
-void generate_sudoku(char *gen_sudoku);
-bool solve_user_nums();
+void generate_sudoku(char *gen_sudoku, const struct TSOpts *opts);
 bool check_validity(const char *sudoku_to_check);
+bool solve(char *sudoku_to_solve, bool visual);

@@ -31,6 +31,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 
+void fprintf_char_arr(const char *arr, size_t sz, FILE *out);
+void fprintf_int_arr(const int *arr, size_t sz, FILE *out);
+
 // Exit ncurses cleanly
 
 void finish(int sig)
@@ -45,14 +48,14 @@ void finish(int sig)
 
 // Takes the same parameters as printf and exits ncurses as well as the
 // application
-void finish_with_err_msg(char *msg, ...)
+void finish_with_err_msg(const char *msg, ...)
 {
     endwin();
 
     // Send '...'-args to vprintf
     va_list format;
     va_start(format, msg);
-    vprintf(msg, format);
+    vfprintf(stderr, msg, format);
     va_end(format);
 
     exit(1);
@@ -60,7 +63,7 @@ void finish_with_err_msg(char *msg, ...)
 
 // List files in a directory into items (iterator will be returned as the actual
 // size of items)
-void listfiles(char *dir_name, char *items[], int *iterator)
+void listfiles(const char *dir_name, char *items[], int *iterator)
 {
     // Set iterator
     *iterator = 0;
@@ -86,25 +89,40 @@ void listfiles(char *dir_name, char *items[], int *iterator)
     }
 }
 
+void fprintf_char_arr(const char *arr, size_t sz, FILE *out)
+{
+    for (size_t i = 0; i < sz; i++) {
+        fprintf(out, "%c", arr[i]);
+    }
+    fprintf(out, "\n");
+}
+
+void fprintf_int_arr(const int *arr, size_t sz, FILE *out)
+{
+    for (size_t i = 0; i < sz; i++) {
+        fprintf(out, "%d", arr[i]);
+    }
+    fprintf(out, "\n");
+}
+
 // Write sudoku_str, user_nums and notes to file
-bool savestate()
+bool savestate(const char *filename, const struct SudokuSpec *spec)
 {
     FILE *savestate = fopen(filename, "w");
 
     if (savestate == NULL)
         return false;
 
-    fprintf(savestate, "%s\n%s\n", sudoku_str, user_nums);
-    for (int i = 0; i < SUDOKU_LEN * LINE_LEN; i++)
-        fprintf(savestate, "%d", notes[i]);
-    fprintf(savestate, "\n");
+    fprintf_char_arr(spec->sudoku, SUDOKU_LEN, savestate);
+    fprintf_char_arr(spec->user, SUDOKU_LEN, savestate);
+    fprintf_int_arr(spec->notes, SUDOKU_LEN * LINE_LEN, savestate);
 
     fclose(savestate);
 
     return true;
 }
 
-void gen_file_name()
+void gen_file_name(char *filename, size_t sz, char *dir)
 {
     time_t t = time(NULL);
     // localtime struct for file name
@@ -114,29 +132,26 @@ void gen_file_name()
     char fn[STR_LEN];
     strftime(fn, sizeof(fn), "%Y-%m-%d-%H-%M-%S.sudoku", &tm);
 
-    snprintf(filename, STR_LEN, "%s/%s", target_dir, fn);
+    snprintf(filename, sz, "%s/%s", dir, fn);
 }
 
 // Ask for confirmation by displaying
-bool status_bar_confirmation()
+bool status_bar_confirmation(struct TSStruct *spec)
 {
     // Return if the '-c' flag is set (the user does not want to be asked)
-    if (!opts.ask_confirmation)
+    if (!spec->opts->ask_confirmation)
         return true;
 
     char statusbar_backup[STR_LEN];
-    strcpy(statusbar_backup, statusbar);
+    strcpy(statusbar_backup, spec->statusbar);
 
-    sprintf(statusbar, "%s", "Sure? y/n");
-    draw();
+    sprintf(spec->statusbar, "%s", "Sure? y/n");
+    draw(spec);
 
     char confirm = getch();
 
-    sprintf(statusbar, "%s", statusbar_backup);
-    draw();
+    sprintf(spec->statusbar, "%s", statusbar_backup);
+    draw(spec);
 
-    if (confirm != 'y')
-        return false;
-
-    return true;
+    return confirm == 'y';
 }
