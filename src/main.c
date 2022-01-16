@@ -206,7 +206,10 @@ bool fileview(struct TSStruct *spec)
     bool chosen = false;
     bool new_file = false;
     bool own = false;
-    int position = 0;
+
+    static int position = 0;
+    if (position > iterator)
+        position = iterator - 1 >= 0 ? iterator - 1 : 0;
 
     const char *file_view_controls =
         "Choose a savegame - move - j and k, d - delete, confirm - y, new file "
@@ -255,6 +258,8 @@ bool fileview(struct TSStruct *spec)
                 finish_with_err_msg("Error: '%s' when trying to remove '%s'\n",
                                     strerror(errno), temp_file);
             }
+            position = position - 1 >= 0 ? position - 1 : 0;
+
             for (int j = 0; j < iterator; j++)
                 free(items[j]);
             listfiles(spec->opts->dir, items, &iterator);
