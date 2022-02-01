@@ -26,18 +26,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
+struct sudoku_cell_props{
     char vert_line[LINE_LEN];
     char hor_line[LINE_LEN];
     char block[LINE_LEN];
-} sudoku_cell_props;
+};
 
 void solve_count(char *sudoku_to_solve, int *count);
 void remove_nums(char *gen_sudoku, const struct TSOpts *opts);
-void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku);
+void get_cell_props(struct sudoku_cell_props *out, int cell, const char *sudoku);
 
 // Given a cell in a sudoku get the according row, column and block
-void get_cell_props(sudoku_cell_props *out, int cell, const char *sudoku)
+void get_cell_props(struct sudoku_cell_props *out, int cell, const char *sudoku)
 {
     for (int i = 0; i < LINE_LEN; i++) {
         out->vert_line[i] = sudoku[i * LINE_LEN + (cell % LINE_LEN)];
@@ -149,7 +149,7 @@ bool solve(char *sudoku_to_solve, bool visual)
     for (int i = 0; i < SUDOKU_LEN; i++) {
         if (sudoku_to_solve[i] == '0') {
             // Get the fields associated with the value at start
-            sudoku_cell_props cell_props;
+            struct sudoku_cell_props cell_props;
             get_cell_props(&cell_props, i, sudoku_to_solve);
 
             // Try to assign a value to the cell at i
@@ -194,7 +194,7 @@ void solve_count(char *sudoku_to_solve, int *count)
         if (sudoku_to_solve[i] == '0') {
             // Get the fields associated with the value at i
 
-            sudoku_cell_props cell_props;
+            struct sudoku_cell_props cell_props;
             get_cell_props(&cell_props, i, sudoku_to_solve);
 
             // Try to assign a value to the cell at i
@@ -237,7 +237,7 @@ void solve_count(char *sudoku_to_solve, int *count)
 bool check_validity(const char *combined_solution)
 {
     for (int i = 0; i < SUDOKU_LEN; i++) {
-        sudoku_cell_props cell_props;
+        struct sudoku_cell_props cell_props;
         get_cell_props(&cell_props, i, combined_solution);
 
         // Keeps count if a number already appeared in a sudoku unit

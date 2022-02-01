@@ -255,8 +255,7 @@ bool fileview(struct TSStruct *spec)
             char temp_file[STR_LEN];
             snprintf(temp_file, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
             if (remove(temp_file) == -1) {
-                finish_with_err_msg("Error: '%s' when trying to remove '%s'\n",
-                                    strerror(errno), temp_file);
+                finish_with_errno("Removing %s", temp_file);
             }
             position = position - 1 >= 0 ? position - 1 : 0;
 
@@ -299,8 +298,7 @@ bool fileview(struct TSStruct *spec)
         // Read Sudoku from given file
         FILE *input_file = fopen(spec->opts->filename, "r");
         if (input_file == NULL) {
-            finish_with_err_msg("Error: '%s' when trying to access file '%s'\n",
-                                strerror(errno), spec->opts->filename);
+            finish_with_errno(spec->opts->filename);
         }
 
         // Scan in the first two lines which are the puzzle and the entered
@@ -574,9 +572,7 @@ int main(int argc, char **argv)
         struct stat st = {0};
         if (stat(target_dir, &st) == -1) {
             if ((mkdir(target_dir, 0777)) == -1) {
-                finish_with_err_msg(
-                    "Error: '%s' when trying to create directory '%s'\n",
-                    strerror(errno), target_dir);
+                finish_with_errno("Creating directory %s", target_dir);
             }
         }
         opts.dir = target_dir;

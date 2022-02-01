@@ -61,6 +61,19 @@ void finish_with_err_msg(const char *msg, ...)
     exit(1);
 }
 
+void finish_with_errno(const char *msg, ...) {
+    endwin();
+
+    va_list format;
+    va_start(format, msg);
+    vfprintf(stderr, msg, format);
+    va_end(format);
+
+    fprintf(stderr, ": %s\n", strerror(errno));
+
+    exit(1);
+}
+
 // List files in a directory into items (iterator will be returned as the actual
 // size of items)
 void listfiles(const char *dir_name, char *items[], int *iterator)
@@ -69,24 +82,24 @@ void listfiles(const char *dir_name, char *items[], int *iterator)
     *iterator = 0;
 
     // Load contents of directory into items
-    DIR *diretory_object;
+    DIR *diretory_object = opendir(dir_name);
+
     struct dirent *dir;
-    diretory_object = opendir(dir_name);
-    if (diretory_object) {
-        while ((dir = readdir(diretory_object)) != NULL) {
-            if (!(strcmp(dir->d_name, ".") == 0 ||
-                  strcmp(dir->d_name, "..") == 0) &&
-                strlen(dir->d_name) < STR_LEN) {
-                char *new_item = strdup(dir->d_name);
-                items[*iterator] = new_item;
-                *iterator += 1;
-            }
-        }
-        closedir(diretory_object);
-    } else {
-        finish_with_err_msg("Error: '%s' when trying to open directory '%s'\n",
-                            strerror(errno), dir_name);
+
+    if (!diretory_object) {
+        finish_with_errno(dir_name);
     }
+
+    while ((dir = readdir(diretory_object)) != NULL) {
+        if (!(strcmp(dir->d_name, ".") == 0 ||
+              strcmp(dir->d_name, "..") == 0) &&
+            strlen(dir->d_name) < STR_LEN) {
+            char *new_item = strdup(dir->d_name);
+            items[*iterator] = new_item;
+            *iterator += 1;
+        }
+    }
+    closedir(diretory_object);
 }
 
 void fprintf_char_arr(const char *arr, size_t sz, FILE *out)

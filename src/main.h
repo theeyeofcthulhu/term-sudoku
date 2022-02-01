@@ -18,13 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <stdbool.h>
+
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
 #define ATTEMPTS_DEFAULT 5
 #define STR_LEN 80
 #define PUZZLE_OFFSET 1
-
-#include <stdbool.h>
 
 struct TSOpts{
     bool gen_visual;

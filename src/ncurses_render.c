@@ -30,15 +30,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 
-#define VISUAL_SLEEP 10000000
-const struct timespec sleep_request = {0, VISUAL_SLEEP};
-
 void draw_sudokus(const struct TSStruct *spec);
 void read_notes(const struct SudokuSpec *spec);
 void draw_border(bool small_mode);
 void read_sudoku(const struct TSStruct *spec, const char *sudoku, int color_mode, int color_mode_highlight);
 
 static struct TSStruct *vis_gen_spec;
+
+#define VISUAL_SLEEP 10000000
+const struct timespec sleep_request = {0, VISUAL_SLEEP};
 
 // curses init logic
 void init_ncurses()

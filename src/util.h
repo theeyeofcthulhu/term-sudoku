@@ -26,6 +26,7 @@ struct TSStruct;
 
 void finish(int sig);
 void finish_with_err_msg(const char *msg, ...);
+void finish_with_errno(const char *msg, ...);
 void gen_file_name(char *filename, size_t sz, char *dir);
 void listfiles(const char *dir_name, char *items[], int *iterator);
 bool savestate(const char *filename, const struct SudokuSpec *spec);
