@@ -52,7 +52,8 @@ const char *controls_default = "move - h, j, k and l or arrow keys\n"
                                "quit - q\n";
 bool editing_notes = false;
 
-const char *sharepath = ".local/share/term-sudoku";
+const char *sharepath = ".local/share";
+const char *appsharepath = ".local/share/term-sudoku";
 
 // Generate a new sudoku for the user to solve
 void new_sudoku(struct TSStruct *spec)
@@ -558,22 +559,33 @@ int main(int argc, char **argv)
 
     // Set dir as $HOME/.local/share
     if (opts.dir == NULL) {
-        char *target_dir;
-        char *home_dir;
+        char *target_dir, *home_dir;
+
         // Get user home directory
         struct passwd *pw = getpwuid(getuid());
         home_dir = pw->pw_dir;
+
         // target is: $HOME/.local/share/term-sudoku
         target_dir =
-            malloc((strlen(home_dir) + strlen(sharepath) + 2) * sizeof(char));
+            malloc((strlen(home_dir) + strlen(appsharepath) + 2) * sizeof(char));
+
         sprintf(target_dir, "%s/%s", home_dir, sharepath);
+
         // Create (if not already created) the term-sudoku directory in the
         // .local/share directory
-        struct stat st = {0};
-        if (stat(target_dir, &st) == -1) {
-            if ((mkdir(target_dir, 0777)) == -1) {
-                finish_with_errno("Creating directory %s", target_dir);
+        struct stat st;
+        if (stat(target_dir, &st) != -1) {
+            sprintf(target_dir, "%s/%s", home_dir, appsharepath);
+
+            // ~/.local/share exists but ~/.local/share/term-sudoku doesn't
+            if (stat(target_dir, &st) == -1) {
+                if ((mkdir(target_dir, 0777)) == -1) {
+                    finish_with_errno("Creating directory %s", target_dir);
+                }
             }
+        } else {
+            // Fallback to current working directory, since ~/.local/share doesn't exist
+            target_dir = ".";
         }
         opts.dir = target_dir;
     }
