@@ -579,7 +579,7 @@ int main(int argc, char **argv)
 
             // ~/.local/share exists but ~/.local/share/term-sudoku doesn't
             if (stat(target_dir, &st) == -1) {
-                if ((mkdir(target_dir, 0777)) == -1) {
+                if (mkdir(target_dir, 0777) == -1) {
                     finish_with_errno("Creating directory %s", target_dir);
                 }
             }

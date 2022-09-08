@@ -83,13 +83,11 @@ void listfiles(const char *dir_name, char *items[], int *iterator)
 
     // Load contents of directory into items
     DIR *diretory_object = opendir(dir_name);
-
-    struct dirent *dir;
-
     if (!diretory_object) {
         finish_with_errno(dir_name);
     }
 
+    struct dirent *dir;
     while ((dir = readdir(diretory_object)) != NULL) {
         if (!(strcmp(dir->d_name, ".") == 0 ||
               strcmp(dir->d_name, "..") == 0) &&
