@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(term-sudoku C)
 
-set(CMAKE_C_FLAGS_DEBUG "-ggdb -Wall -Wextra -Wshadow -Wno-format-truncation -std=c11 -pedantic -D_POSIX_C_SOURCE=200809")
-set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow -Wno-format-truncation -std=c11 -pedantic -D_POSIX_C_SOURCE=200809")
+set(CMAKE_C_FLAGS_DEBUG "-ggdb -Wall -Wextra -Wshadow -std=c11 -pedantic -D_POSIX_C_SOURCE=200809")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow -std=c11 -pedantic -D_POSIX_C_SOURCE=200809")
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
