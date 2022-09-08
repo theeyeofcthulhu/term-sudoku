@@ -38,7 +38,7 @@ struct TSOpts{
 };
 
 struct TSStruct {
-    char *controls;
+    const char *controls;
     char statusbar[STR_LEN];
     int highlight;
     struct SudokuSpec *sudoku;

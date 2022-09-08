@@ -121,7 +121,7 @@ bool own_sudoku_view(struct TSStruct *spec)
                                          "done - d\n"
                                          "go to position - g\n"
                                          "quit - q\n";
-    spec->controls = (char *)custom_sudoku_controls;
+    spec->controls = custom_sudoku_controls;
     // Draw with new controls
     draw(spec);
     bool done = false;
@@ -186,7 +186,7 @@ bool own_sudoku_view(struct TSStruct *spec)
         }
     }
     // Reset controls
-    spec->controls = (char *)controls_default;
+    spec->controls = controls_default;
     sprintf(spec->statusbar, "Sudoku entered");
 
     return !quit;
@@ -598,7 +598,7 @@ int main(int argc, char **argv)
         .sudoku = &sudoku,
         .cursor = &cursor,
         .highlight = 0,
-        .controls = (char *)controls_default,
+        .controls = controls_default,
     };
     memset(spec.statusbar, '\0', sizeof(spec.statusbar));
 
