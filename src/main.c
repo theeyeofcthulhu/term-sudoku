@@ -194,13 +194,11 @@ bool own_sudoku_view(struct TSStruct *spec)
 
 bool fileview(struct TSStruct *spec)
 {
-    // Array of strings (in this case: directories)
-    char *items[STR_LEN];
     // Holds the size of 'items'
     int iterator;
 
     // Load files in directory into items
-    listfiles(spec->opts->dir, items, &iterator);
+    char **items = listfiles(spec->opts->dir, &iterator);
 
     curs_set(0);
 
@@ -260,12 +258,12 @@ bool fileview(struct TSStruct *spec)
             }
             position = position - 1 >= 0 ? position - 1 : 0;
 
-            for (int j = 0; j < iterator; j++)
-                free(items[j]);
-            listfiles(spec->opts->dir, items, &iterator);
+            freefiles(items, iterator);
+            items = listfiles(spec->opts->dir, &iterator);
             break;
         }
         case 'q':
+            freefiles(items, iterator);
             return false;
         // Create a new file instead of reading one
         case 'n':
@@ -293,9 +291,6 @@ bool fileview(struct TSStruct *spec)
     if (chosen) {
         snprintf(spec->opts->filename, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
 
-        for (int j = 0; j < iterator; j++)
-            free(items[j]);
-
         // Read Sudoku from given file
         FILE *input_file = fopen(spec->opts->filename, "r");
         if (input_file == NULL) {
@@ -320,6 +315,8 @@ bool fileview(struct TSStruct *spec)
         new_sudoku(spec);
         mainloop(spec);
     }
+
+    freefiles(items, iterator);
 
     return true;
 }

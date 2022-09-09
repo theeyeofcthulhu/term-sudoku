@@ -74,30 +74,51 @@ void finish_with_errno(const char *msg, ...) {
     exit(1);
 }
 
-// List files in a directory into items (iterator will be returned as the actual
-// size of items)
-void listfiles(const char *dir_name, char *items[], int *iterator)
+// List files in a directory into malloc'd array of malloc'd strings (iterator will be returned as the size of items)
+char **listfiles(const char *dir_name, int *iterator)
 {
     // Set iterator
     *iterator = 0;
 
+    DIR *dirp = opendir(dir_name);
+
+    struct dirent *entry;
+    int files = 0;
+
+    char **ret;
+
     // Load contents of directory into items
-    DIR *diretory_object = opendir(dir_name);
-    if (!diretory_object) {
+    if (!dirp) {
         finish_with_errno(dir_name);
     }
 
-    struct dirent *dir;
-    while ((dir = readdir(diretory_object)) != NULL) {
-        if (!(strcmp(dir->d_name, ".") == 0 ||
-              strcmp(dir->d_name, "..") == 0) &&
-            strlen(dir->d_name) < STR_LEN) {
-            char *new_item = strdup(dir->d_name);
-            items[*iterator] = new_item;
-            *iterator += 1;
+    // get size
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            files++;
         }
     }
-    closedir(diretory_object);
+
+    ret = malloc(files * sizeof(char *));
+
+    // get contents
+    rewinddir(dirp);
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            ret[(*iterator)++] = strdup(entry->d_name);
+        }
+    }
+
+    closedir(dirp);
+
+    return ret;
+}
+
+void freefiles(char **files, int sz)
+{
+    for (int i = 0; i < sz; i++)
+        free(files[i]);
+    free(files);
 }
 
 void fprintf_char_arr(const char *arr, size_t sz, FILE *out)
