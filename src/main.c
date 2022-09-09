@@ -408,8 +408,7 @@ void mainloop(struct TSStruct *spec)
             if (opts->small_mode)
                 break;
             editing_notes = !editing_notes;
-            char *mode = editing_notes ? "Note" : "Normal";
-            sprintf(spec->statusbar, "%s %s", mode, "Mode");
+            sprintf(spec->statusbar, "%s Mode", editing_notes ? "Note" : "Normal");
 
             draw(spec);
             break;
