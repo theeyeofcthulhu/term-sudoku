@@ -41,6 +41,7 @@ struct TSStruct {
     const char *controls;
     char statusbar[STR_LEN];
     int highlight;
+    bool editing_notes;
     struct SudokuSpec *sudoku;
     struct TSOpts *opts;
     struct Cursor *cursor;

@@ -50,8 +50,6 @@ const char *controls_default = "move - h, j, k and l or arrow keys\n"
                                "go to position - g\n"
                                "highlight number - v\n"
                                "quit - q\n";
-bool editing_notes = false;
-
 const char *sharepath = ".local/share";
 const char *appsharepath = ".local/share/term-sudoku";
 
@@ -407,8 +405,8 @@ void mainloop(struct TSStruct *spec)
         case 'e':
             if (opts->small_mode)
                 break;
-            editing_notes = !editing_notes;
-            sprintf(spec->statusbar, "%s Mode", editing_notes ? "Note" : "Normal");
+            spec->editing_notes = !(spec->editing_notes);
+            sprintf(spec->statusbar, "%s Mode", spec->editing_notes ? "Note" : "Normal");
 
             draw(spec);
             break;
@@ -445,7 +443,7 @@ void mainloop(struct TSStruct *spec)
             // Check if the field is empty in the puzzle
             if (sudoku->sudoku[curs->y * LINE_LEN + curs->x] == '0') {
                 // Toggle the note fields (if in note mode)
-                if (editing_notes) {
+                if (spec->editing_notes) {
                     if (key_press >= '1' && key_press <= '9') {
                         // Access cursor location in array and add key_press for
                         // appropriate number
