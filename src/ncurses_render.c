@@ -94,6 +94,8 @@ void draw(const struct TSStruct *spec)
              (control_line = strtok(control_copy_ptr, "\n")) != NULL;
              control_copy_ptr = NULL, string_y++)
             mvaddstr(string_y, string_x, control_line);
+
+        mvprintw(string_y + 1, string_x, "--- %s ---", spec->editing_notes ? "Note" : "Normal");
     } else {
         mvaddstr(string_y, string_x, spec->controls);
     }
