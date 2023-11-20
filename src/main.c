@@ -214,15 +214,19 @@ bool fileview(struct TSStruct *spec)
 
     // Choose file by moving cursor
     while (!chosen && !new_file && !own) {
+        const int filestart = 4;
+
         erase();
 
         mvprintw(0, 0, "%s", file_view_controls);
 
+        mvprintw(2, 0, "%s", spec->opts->dir);
+
         for (int j = 0; j < iterator; j++)
-            mvprintw(j + 2, 0, "  %s\n", items[j]);
+            mvprintw(j + filestart, 4, "  %s\n", items[j]);
 
         // Asteriks as cursor for file selection
-        mvaddch(position + 2, 0, '*');
+        mvaddch(position + filestart, 4, '*');
 
         int key_press = getch();
 
