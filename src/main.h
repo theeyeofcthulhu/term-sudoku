@@ -20,17 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdbool.h>
 
+#ifdef __linux__
+#include <linux/limits.h>
+#else
+#define PATH_MAX 4096
+#endif
+
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
 #define ATTEMPTS_DEFAULT 5
 #define STR_LEN 80
 #define PUZZLE_OFFSET 1
 
-struct TSOpts{
+struct TSOpts {
     bool gen_visual;
     bool own_sudoku;
     int attempts;
-    char *dir;
+    char dir[PATH_MAX];
     bool from_file;
     bool ask_confirmation;
     bool small_mode;
