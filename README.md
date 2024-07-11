@@ -32,7 +32,7 @@ When you start the program with
 
 `$ build/term-sudoku`
 
-a sudoku is generated for you (run with '-v' flag to see that process). Use
+a Sudoku is generated for you (run with '-v' flag to see that process). Use
 the controls displayed on the screen to insert numbers and move around.
 
 When you save by pressing 's' the Sudoku is saved to ~/.local/share/term-sudoku/
