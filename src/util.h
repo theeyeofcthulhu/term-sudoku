@@ -21,6 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdbool.h>
 #include <stddef.h>
 
+#define CHNUM(x) ((x) - 0x30)
+
 struct SudokuSpec;
 struct TSStruct;
 

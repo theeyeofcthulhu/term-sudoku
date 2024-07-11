@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "main.h"
 #include "ncurses_render.h"
+#include "util.h"
 
 #include <curses.h>
 #include <stdbool.h>
@@ -245,9 +246,9 @@ bool check_validity(const char *combined_solution)
         for (int j = 0; j < LINE_LEN; j++) {
             int cur_comp[3];
 
-            cur_comp[0] = cell_props.hor_line[j] - 0x30;
-            cur_comp[1] = cell_props.vert_line[j] - 0x30;
-            cur_comp[2] = cell_props.block[j] - 0x30;
+            cur_comp[0] = CHNUM(cell_props.hor_line[j]);
+            cur_comp[1] = CHNUM(cell_props.vert_line[j]);
+            cur_comp[2] = CHNUM(cell_props.block[j]);
 
             for (int k = 0; k < 3; k++) {
                 if (appeared[k][cur_comp[k]] || cur_comp[k] == 0)

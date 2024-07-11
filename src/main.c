@@ -61,14 +61,13 @@ void new_sudoku(struct TSStruct *spec)
     struct TSOpts *opts = spec->opts;
     struct SudokuSpec *sudoku = spec->sudoku;
 
+    // Writes a filename from current date and time
     gen_file_name(opts->filename, sizeof(opts->filename), opts->dir);
 
-    // Clear sudoku arrays
     memset(sudoku->sudoku,  '0',    sizeof(sudoku->sudoku));
     memset(sudoku->user,    '0',    sizeof(sudoku->user));
     memset(sudoku->notes,    0,     sizeof(sudoku->notes));
 
-    // Generate the sudoku
     generate_sudoku(sudoku->sudoku, opts);
 
     sprintf(spec->statusbar, "%s", "Sudoku generated");
@@ -84,8 +83,7 @@ void input_go_to(struct TSStruct *spec)
 
     for (int i = 0; i < 2; i++) {
         char c_pos = getch();
-        // TODO: CHAR_TO_NUM macro or something similar
-        move_to[i] = c_pos - 0x30;
+        move_to[i] = CHNUM(c_pos);
         if (move_to[i] <= 0 || move_to[i] > 9) {
             sprintf(spec->statusbar, "%s", "Cancelled");
             draw(spec);
@@ -617,7 +615,6 @@ int main(int argc, char **argv)
     spec.sudoku = &sudoku;
     spec.cursor = &cursor;
 
-    // ncurses intializer functions
     init_ncurses();
 
     if (opts.gen_visual)
@@ -640,5 +637,6 @@ int main(int argc, char **argv)
         new_sudoku(&spec);
         mainloop(&spec);
     }
+
     finish(0);
 }
