@@ -131,11 +131,14 @@ bool solve(char *sudoku_to_solve, bool visual)
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
                 bool used = false;
-                for (int k = 0; k < LINE_LEN; k++) {
+                for (int k = 0; k < LINE_LEN && !used; k++) {
                     // Check if the value is valid
                     if (COLUMN(sudoku_to_solve, i, k) == j ||
-                        ROW(sudoku_to_solve, i, k) == j || BLOCK(sudoku_to_solve, i, k) == j)
+                        ROW(sudoku_to_solve, i, k) == j ||
+                        BLOCK(sudoku_to_solve, i, k) == j)
+                    {
                         used = true;
+                    }
                 }
                 if (!used) {
                     sudoku_to_solve[i] = j;
@@ -171,11 +174,14 @@ void solve_count(char *sudoku_to_solve, int *count)
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
                 bool used = false;
-                for (int k = 0; k < LINE_LEN; k++) {
+                for (int k = 0; k < LINE_LEN && !used; k++) {
                     // Check if the value is valid
                     if (COLUMN(sudoku_to_solve, i, k) == j ||
-                        ROW(sudoku_to_solve, i, k) == j || BLOCK(sudoku_to_solve, i, k) == j)
+                        ROW(sudoku_to_solve, i, k) == j ||
+                        BLOCK(sudoku_to_solve, i, k) == j)
+                    {
                         used = true;
+                    }
                 }
                 if (!used) {
                     sudoku_to_solve[i] = j;
