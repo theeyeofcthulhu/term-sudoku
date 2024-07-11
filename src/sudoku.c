@@ -49,26 +49,19 @@ void generate_sudoku(char *gen_sudoku, const struct TSOpts *opts)
      * [ ][x][ ]
      * [ ][ ][x] */
     for (int i = 0; i < 3; i++) {
+        bool used[LINE_LEN] = { false };
+
         for (int j = 0; j < LINE_LEN; j++) {
-            bool duplicate = true;
-            while (duplicate) {
-                duplicate = false;
-                // Math to get a pointer to the current cell in the according
-                // diagonal block
-                char *current_digit =
-                    &gen_sudoku[(i * 3) * LINE_LEN + (i * 3) +
-                                (LINE_LEN * (j / 3)) + (j % 3)];
-                // Assign a random value between 1 and 9
-                *current_digit = '1' + rand() % 9;
-                // Check all digits up to 'j' cells into the block for
-                // duplicates
-                for (int k = 0; k < j; k++) {
-                    if (*current_digit ==
-                        gen_sudoku[(i * 3) * LINE_LEN + (i * 3) +
-                                   (LINE_LEN * (k / 3)) + (k % 3)])
-                        duplicate = true;
-                }
-            }
+            int num;
+            do {
+                num = rand() % 9;
+            } while (used[num]);
+
+            used[num] = true;
+
+            gen_sudoku[(i * 3) * LINE_LEN + (i * 3) +
+                       (LINE_LEN * (j / 3)) + (j % 3)] = '1' + num;
+
             // Draw the process of filling out the sudoku visually on the screen
             // if that option is set via '-v'
             if (opts->gen_visual) {
