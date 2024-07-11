@@ -27,27 +27,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 
-struct sudoku_cell_props{
-    char vert_line[LINE_LEN];
-    char hor_line[LINE_LEN];
-    char block[LINE_LEN];
-};
-
 void solve_count(char *sudoku_to_solve, int *count);
 void remove_nums(char *gen_sudoku, const struct TSOpts *opts);
-void get_cell_props(struct sudoku_cell_props *out, int cell, const char *sudoku);
 
-// Given a cell in a sudoku get the according row, column and block
-void get_cell_props(struct sudoku_cell_props *out, int cell, const char *sudoku)
-{
-    for (int i = 0; i < LINE_LEN; i++) {
-        out->vert_line[i] = sudoku[i * LINE_LEN + (cell % LINE_LEN)];
-        out->hor_line[i] = sudoku[(cell / LINE_LEN) * LINE_LEN + i];
-        out->block[i] = sudoku[(((cell / LINE_LEN) / 3) * 3) * LINE_LEN +
-                                     (((cell % LINE_LEN) / 3) * 3) +
-                                     (LINE_LEN * (i / 3)) + (i % 3)];
-    }
-}
+#define ROW(sudoku, cell, i) ((sudoku)[(i) * LINE_LEN + ((cell) % LINE_LEN)])
+#define COLUMN(sudoku, cell, i) ((sudoku)[((cell) / LINE_LEN) * LINE_LEN + (i)])
+#define BLOCK(sudoku, cell, i) ((sudoku)[((((cell) / LINE_LEN) / 3) * 3) * LINE_LEN + \
+                                         ((((cell) % LINE_LEN) / 3) * 3) + \
+                                         (LINE_LEN * ((i) / 3)) + ((i) % 3)])
 
 // Generate a random sudoku
 // This function generates the diagonal blocks from left to right and then calls
@@ -149,17 +136,13 @@ bool solve(char *sudoku_to_solve, bool visual)
 
     for (int i = 0; i < SUDOKU_LEN; i++) {
         if (sudoku_to_solve[i] == '0') {
-            // Get the fields associated with the value at start
-            struct sudoku_cell_props cell_props;
-            get_cell_props(&cell_props, i, sudoku_to_solve);
-
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
                 bool used = false;
                 for (int k = 0; k < LINE_LEN; k++) {
                     // Check if the value is valid
-                    if (cell_props.vert_line[k] == j ||
-                        cell_props.hor_line[k] == j || cell_props.block[k] == j)
+                    if (COLUMN(sudoku_to_solve, i, k) == j ||
+                        ROW(sudoku_to_solve, i, k) == j || BLOCK(sudoku_to_solve, i, k) == j)
                         used = true;
                 }
                 if (!used) {
@@ -193,18 +176,13 @@ void solve_count(char *sudoku_to_solve, int *count)
     // find empty cell
     for (int i = 0; i < SUDOKU_LEN; i++) {
         if (sudoku_to_solve[i] == '0') {
-            // Get the fields associated with the value at i
-
-            struct sudoku_cell_props cell_props;
-            get_cell_props(&cell_props, i, sudoku_to_solve);
-
             // Try to assign a value to the cell at i
             for (int j = '1'; j <= '9'; j++) {
                 bool used = false;
                 for (int k = 0; k < LINE_LEN; k++) {
                     // Check if the value is valid
-                    if (cell_props.vert_line[k] == j ||
-                        cell_props.hor_line[k] == j || cell_props.block[k] == j)
+                    if (COLUMN(sudoku_to_solve, i, k) == j ||
+                        ROW(sudoku_to_solve, i, k) == j || BLOCK(sudoku_to_solve, i, k) == j)
                         used = true;
                 }
                 if (!used) {
@@ -238,17 +216,14 @@ void solve_count(char *sudoku_to_solve, int *count)
 bool check_validity(const char *combined_solution)
 {
     for (int i = 0; i < SUDOKU_LEN; i++) {
-        struct sudoku_cell_props cell_props;
-        get_cell_props(&cell_props, i, combined_solution);
-
         // Keeps count if a number already appeared in a sudoku unit
         bool appeared[3][LINE_LEN + 1] = {false};
         for (int j = 0; j < LINE_LEN; j++) {
             int cur_comp[3];
 
-            cur_comp[0] = CHNUM(cell_props.hor_line[j]);
-            cur_comp[1] = CHNUM(cell_props.vert_line[j]);
-            cur_comp[2] = CHNUM(cell_props.block[j]);
+            cur_comp[0] = CHNUM(COLUMN(combined_solution, i, j));
+            cur_comp[1] = CHNUM(ROW(combined_solution, i, j));
+            cur_comp[2] = CHNUM(BLOCK(combined_solution, i, j));
 
             for (int k = 0; k < 3; k++) {
                 if (appeared[k][cur_comp[k]] || cur_comp[k] == 0)
