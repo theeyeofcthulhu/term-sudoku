@@ -30,8 +30,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 void solve_count(char *sudoku_to_solve, int *count);
 void remove_nums(char *gen_sudoku, const struct TSOpts *opts);
 
-#define ROW(sudoku, cell, i) ((sudoku)[(i) * LINE_LEN + ((cell) % LINE_LEN)])
-#define COLUMN(sudoku, cell, i) ((sudoku)[((cell) / LINE_LEN) * LINE_LEN + (i)])
+#define COLUMN(sudoku, cell, i) ((sudoku)[(i) * LINE_LEN + ((cell) % LINE_LEN)])
+#define ROW(sudoku, cell, i) ((sudoku)[((cell) / LINE_LEN) * LINE_LEN + (i)])
 #define BLOCK(sudoku, cell, i) ((sudoku)[((((cell) / LINE_LEN) / 3) * 3) * LINE_LEN + \
                                          ((((cell) % LINE_LEN) / 3) * 3) + \
                                          (LINE_LEN * ((i) / 3)) + ((i) % 3)])
@@ -207,24 +207,37 @@ void solve_count(char *sudoku_to_solve, int *count)
     }
 }
 
-// TODO: remove overhead from checking lines multiple times
-//       (use a mechanism to get each line, column and block)
-
 // Check for errors in the solved sudoku
 bool check_validity(const char *combined_solution)
 {
+    /* Check first if it's possible that the solution is correct
+     * by checking if the values in it add up to nine times the sum
+     * of the nine digits (405) */
+    int sum = 0;
     for (int i = 0; i < SUDOKU_LEN; i++) {
-        // Keeps count if a number already appeared in a sudoku unit
+        sum += CHNUM(combined_solution[i]);
+    }
+    if (sum != SOLUTION_SUM) {
+        return false;
+    }
+
+
+    // Go through all nine columns, rows and blocks and check for
+    // duplicates
+    for (int i = 0; i < LINE_LEN; i++) {
         bool appeared[3][LINE_LEN + 1] = {false};
+
         for (int j = 0; j < LINE_LEN; j++) {
             int cur_comp[3];
 
             cur_comp[0] = CHNUM(COLUMN(combined_solution, i, j));
-            cur_comp[1] = CHNUM(ROW(combined_solution, i, j));
-            cur_comp[2] = CHNUM(BLOCK(combined_solution, i, j));
+            cur_comp[1] = CHNUM(ROW(combined_solution, i * LINE_LEN, j));
+            // evaluates to top-left cell of i'th block
+            cur_comp[2] = CHNUM(BLOCK(combined_solution, ((i / 3) * 3) + (((i % 3) * 3) * LINE_LEN), j));
 
+            // Check if j'th number in column, row or block already appeared
             for (int k = 0; k < 3; k++) {
-                if (appeared[k][cur_comp[k]] || cur_comp[k] == 0)
+                if (appeared[k][cur_comp[k]])
                     return false;
 
                 appeared[k][cur_comp[k]] = true;

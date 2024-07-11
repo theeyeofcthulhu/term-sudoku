@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define LINE_LEN 9
 #define SUDOKU_LEN 81
+#define SOLUTION_SUM ((((LINE_LEN*LINE_LEN)+LINE_LEN)/2)*LINE_LEN) // sum of all numbers in a correct solution
 #define ATTEMPTS_DEFAULT 5
 #define STR_LEN 80
 #define PUZZLE_OFFSET 1
