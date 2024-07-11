@@ -4,8 +4,8 @@ project(term-sudoku C)
 
 set(CMAKE_C_STANDARD 11)
 
-set(CMAKE_C_FLAGS_DEBUG "-ggdb -Wall -Wextra -Wshadow -pedantic")
-set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow -pedantic")
+set(CMAKE_C_FLAGS_DEBUG "-ggdb -Wall -Wextra -Wshadow -Wno-format-truncation -pedantic")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow -Wno-format-truncation -pedantic")
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

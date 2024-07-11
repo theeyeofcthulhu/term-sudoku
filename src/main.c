@@ -214,15 +214,19 @@ bool fileview(struct TSStruct *spec)
 
     // Choose file by moving cursor
     while (!chosen && !new_file && !own) {
+        const int filestart = 4;
+
         erase();
 
         mvprintw(0, 0, "%s", file_view_controls);
 
+        mvprintw(2, 0, "%s", spec->opts->dir);
+
         for (int j = 0; j < iterator; j++)
-            mvprintw(j + 2, 0, "  %s\n", items[j]);
+            mvprintw(j + filestart, 4, "  %s\n", items[j]);
 
         // Asteriks as cursor for file selection
-        mvaddch(position + 2, 0, '*');
+        mvaddch(position + filestart, 4, '*');
 
         int key_press = getch();
 
@@ -249,8 +253,8 @@ bool fileview(struct TSStruct *spec)
             if(iterator <= 0)
                 break;
 
-            char temp_file[STR_LEN];
-            snprintf(temp_file, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
+            char temp_file[PATH_MAX];
+            snprintf(temp_file, sizeof(temp_file), "%s/%s", spec->opts->dir, items[position]);
             if (remove(temp_file) == -1) {
                 finish_with_errno("Removing %s", temp_file);
             }
@@ -287,7 +291,7 @@ bool fileview(struct TSStruct *spec)
 
     // Reading the file
     if (chosen) {
-        snprintf(spec->opts->filename, STR_LEN, "%s/%s", spec->opts->dir, items[position]);
+        snprintf(spec->opts->filename, sizeof(spec->opts->filename), "%s/%s", spec->opts->dir, items[position]);
 
         // Read Sudoku from given file
         FILE *input_file = fopen(spec->opts->filename, "r");
@@ -487,11 +491,11 @@ int main(int argc, char **argv)
         .gen_visual = false,
         .own_sudoku = false,
         .attempts = ATTEMPTS_DEFAULT,
-        .dir = NULL,
         .from_file = false,
         .ask_confirmation = true,
         .small_mode = false,
     };
+    opts.dir[0] = '\0';
 
     // Handle command line input with getopt
     int flag;
@@ -527,7 +531,7 @@ int main(int argc, char **argv)
                 opts.attempts = ATTEMPTS_DEFAULT;
             break;
         case 'd':
-            opts.dir = optarg;
+            sprintf(opts.dir, "%s", optarg);
             break;
         case 'f':
             opts.from_file = true;
@@ -564,39 +568,32 @@ int main(int argc, char **argv)
 #endif
 
     // Set dir as $HOME/.local/share
-    if (opts.dir == NULL) {
+    if (strcmp(opts.dir, "") == 0) {
         const char *sharepath = ".local/share";
         const char *appsharepath = ".local/share/term-sudoku";
 
-        char *target_dir, *home_dir;
-
         // Get user home directory
         struct passwd *pw = getpwuid(getuid());
-        home_dir = pw->pw_dir;
+        char *home_dir = pw->pw_dir;
 
-        // target is: $HOME/.local/share/term-sudoku
-        target_dir =
-            malloc((strlen(home_dir) + strlen(appsharepath) + 2) * sizeof(char));
-
-        sprintf(target_dir, "%s/%s", home_dir, sharepath);
+        sprintf(opts.dir, "%s/%s", home_dir, sharepath);
 
         // Create (if not already created) the term-sudoku directory in the
         // .local/share directory
         struct stat st;
-        if (stat(target_dir, &st) != -1) {
-            sprintf(target_dir, "%s/%s", home_dir, appsharepath);
+        if (stat(opts.dir, &st) != -1) {
+            sprintf(opts.dir, "%s/%s", home_dir, appsharepath);
 
             // ~/.local/share exists but ~/.local/share/term-sudoku doesn't
-            if (stat(target_dir, &st) == -1) {
-                if (mkdir(target_dir, 0777) == -1) {
-                    finish_with_errno("Creating directory %s", target_dir);
+            if (stat(opts.dir, &st) == -1) {
+                if (mkdir(opts.dir, 0777) == -1) {
+                    finish_with_errno("Creating directory %s", opts.dir);
                 }
             }
         } else {
             // Fallback to current working directory, since ~/.local/share doesn't exist
-            target_dir = ".";
+            sprintf(opts.dir, ".");
         }
-        opts.dir = target_dir;
     }
 
     struct SudokuSpec sudoku;
