@@ -34,6 +34,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 
+#ifdef __linux__
+#include <sys/random.h>
+#endif
+
 void new_sudoku(struct TSStruct *spec);
 void input_go_to(struct TSStruct *spec);
 bool own_sudoku_view(struct TSStruct *spec);
@@ -544,12 +548,24 @@ int main(int argc, char **argv)
         }
     }
 
-    // on interrupt and segfault (Ctrl+c) exit (call finish (exit ncurses))
+    // on Ctrl+C and segfault, exit ncurses gracefully
     signal(SIGINT, finish);
     signal(SIGSEGV, finish);
 
     // Seed random
+#ifdef __linux__
+    // If running Linux, seed with /dev/urandom
+    // bytes
+    unsigned int seed;
+    if (getrandom(&seed, sizeof(seed), 0) == -1) {
+        perror("getrandom");
+        srand(time(NULL));
+    } else {
+        srand(seed);
+    }
+#else
     srand(time(NULL));
+#endif
 
     // Set dir as $HOME/.local/share
     if (opts.dir == NULL) {
