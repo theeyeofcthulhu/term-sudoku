@@ -86,12 +86,11 @@ void remove_nums(char *gen_sudoku, const struct TSOpts *opts)
     // Run down the attempts defined with '-n'
     while (local_attempts > 0) {
         // Get non-empty cell
-        int cell;
-        bool found_non_empty = false;
-        while (!found_non_empty) {
+        int cell = -1;
+        while (cell < 0) {
             cell = rand() % SUDOKU_LEN;
-            if (gen_sudoku[cell] != '0')
-                found_non_empty = true;
+            if (gen_sudoku[cell] == '0')
+                cell = -1;
         }
 
         // Generate a copy of the sudoku and count how many solutions it has
