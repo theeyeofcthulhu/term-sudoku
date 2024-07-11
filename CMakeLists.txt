@@ -19,4 +19,7 @@ set(SOURCES
 add_executable(term-sudoku ${SOURCES})
 target_link_libraries(term-sudoku ncurses)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/term-sudoku.1 DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/term-sudoku.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+
 install(TARGETS term-sudoku)
