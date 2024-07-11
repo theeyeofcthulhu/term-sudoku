@@ -54,8 +54,6 @@ const char *controls_default = "move - h, j, k and l or arrow keys\n"
                                "go to position - g\n"
                                "highlight number - v\n"
                                "quit - q\n";
-const char *sharepath = ".local/share";
-const char *appsharepath = ".local/share/term-sudoku";
 
 // Generate a new sudoku for the user to solve
 void new_sudoku(struct TSStruct *spec)
@@ -569,6 +567,9 @@ int main(int argc, char **argv)
 
     // Set dir as $HOME/.local/share
     if (opts.dir == NULL) {
+        const char *sharepath = ".local/share";
+        const char *appsharepath = ".local/share/term-sudoku";
+
         char *target_dir, *home_dir;
 
         // Get user home directory
