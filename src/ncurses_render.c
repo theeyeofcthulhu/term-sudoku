@@ -295,8 +295,6 @@ void move_cursor(struct Cursor *curs, bool small_mode)
 void draw_sudokus(const struct TSStruct *spec)
 {
     draw_border(spec->opts->small_mode);
-
     read_sudoku(spec, spec->sudoku->user, 2, 5);
-
     read_sudoku(spec, spec->sudoku->sudoku, 1, 4);
 }
