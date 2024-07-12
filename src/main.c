@@ -1,6 +1,6 @@
 /*
 term-sudoku: play sudoku in the terminal
-Copyright (C) 2021 eyeofcthulhu
+Copyright (C) 2024 eyeofcthulhu
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -502,7 +502,7 @@ int main(int argc, char **argv)
     while ((flag = getopt(argc, argv, "hsvfecd:n:")) != -1) {
         switch (flag) {
         case 'h':
-            printf("term-sudoku Copyright (C) 2021 eyeofcthulhu\n\n"
+            printf("term-sudoku Copyright (C) 2024 eyeofcthulhu\n\n"
                    "usage: term-sudoku [-hsvfec] [-d DIR] [-n NUMBER]\n\n"
                    "flags:\n"
                    "-h: display this information\n"
